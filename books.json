@@ -1,0 +1,30 @@
+[
+  
+  {
+    "id": 1,
+    "title": "queridolucía",
+    "author": "Rafael García-Godos Salazar",
+    "year": 2007,
+    "publisher": "Divino Niño",
+    "genre": "Poesía",
+    "themes": ["cuerpo", "territorio", "tradición"],
+    "description": "*queridolucía* es un libro de poesía experimental que construye a Lucía como cuerpo, territorio y memoria en transformación. Sus poemas recorren deseo, miedo, infancia herida, sombra, casa, cuerpos, fotografías y una identidad que se arma y desarma. Con lenguaje intenso y fragmentario, el libro convierte el dolor íntimo en una voz poética de resistencia y renacimiento.",
+    "cover": "",
+"pdf": "pdfs/queridolucia.pdf",
+"text": "textos/queridolucia.txt",
+"suggestedTopics": [
+  "lucía",
+  "cuerpo",
+  "deseo",
+  "sombra",
+  "foto/grafías",
+  "cucarachas",
+  "noche",
+  "casa",
+  "silencio",
+  "hombres",
+  "madre"
+]
+
+  }
+]
