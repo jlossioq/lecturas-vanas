@@ -126,7 +126,10 @@
       margin-top:16px;padding-top:16px;border-top:1px solid var(--line)
     }
     .count{font-weight:900;color:var(--accent)}
-    .matches{display:grid;gap:14px}
+    .matches{display:grid;gap:18px}
+    .match-group{display:grid;gap:12px}
+    .match-group-title{margin:2px 0 0;padding:11px 14px;border-radius:14px;background:var(--soft);color:var(--accent);font-size:1rem}
+    .match-group-list{display:grid;gap:12px}
     .match{
       display:grid;grid-template-columns:86px 1fr auto;gap:16px;align-items:center;
       padding:18px;border:1px solid var(--line);border-radius:18px;background:#fff
@@ -344,7 +347,7 @@
     <div class="section-head">
       <div>
         <h2>3. Mis matches reales</h2>
-        <p class="sub" style="margin-bottom:0">Se muestran usuarios que hayan leído al menos el 50 % de los libros de tu biblioteca.</p>
+        <p class="sub" style="margin-bottom:0">Se muestran todos los usuarios con quienes tienes al menos un libro en común.</p>
       </div>
       <button id="calculateBtn" class="btn btn-primary" data-auth-required>Buscar coincidencias</button>
     </div>
@@ -870,7 +873,7 @@ async function calculateMatches() {
   setBusy(button,true,'Calculando…');
   el('matches').innerHTML = '<div class="loading"><span class="spinner"></span>Comparando bibliotecas reales…</div>';
 
-  const { data, error } = await client.rpc('get_matches',{p_min_percent:50});
+  const { data, error } = await client.rpc('get_matches',{p_min_percent:0});
   if (error) {
     setBusy(button,false);
     el('matches').innerHTML = `<div class="empty">No se pudieron calcular los matches: ${escapeHtml(readableError(error))}</div>`;
@@ -880,7 +883,7 @@ async function calculateMatches() {
   const matches = data || [];
   if (!matches.length) {
     setBusy(button,false);
-    el('matches').innerHTML = '<div class="empty">Todavía no hay otro usuario que coincida con al menos el 50 % de tu biblioteca. El resultado cambiará a medida que más personas registren sus lecturas.</div>';
+    el('matches').innerHTML = '<div class="empty">Todavía no hay otro usuario con quien tengas al menos un libro en común. El resultado cambiará a medida que más personas registren sus lecturas.</div>';
     return;
   }
 
@@ -896,28 +899,44 @@ async function calculateMatches() {
     };
   }));
 
-  el('matches').innerHTML = enriched.map(match => {
-    const percentage = Number(match.percentage);
-    const shared = match.shared.slice(0,5);
-    const extra = match.shared.length - shared.length;
+  const groups = new Map();
+  enriched.forEach(match => {
+    const commonCount = Number(match.common_books);
+    if (!groups.has(commonCount)) groups.set(commonCount, []);
+    groups.get(commonCount).push(match);
+  });
+
+  el('matches').innerHTML = [...groups.entries()].map(([commonCount, groupMatches]) => {
+    const bookWord = commonCount === 1 ? 'libro' : 'libros';
     return `
-      <article class="match">
-        <div class="score" style="--score:${Math.min(100,percentage)}"><strong>${percentage.toFixed(0)}%</strong></div>
-        <div>
-          <h3>@${escapeHtml(match.username)}</h3>
-          <div class="meta">${match.common_books} de tus ${match.my_books} libros coinciden</div>
-          <div class="tags">
-            ${shared.map(book=>`<span class="tag">${escapeHtml(book.title)}</span>`).join('')}
-            ${extra>0?`<span class="tag">+${extra} más</span>`:''}
-          </div>
-          ${match.recommendations.length ? `<div class="recommend"><strong>Podría recomendarte:</strong> ${match.recommendations.map(book=>escapeHtml(book.title)).join(', ')}</div>` : ''}
+      <section class="match-group">
+        <h3 class="match-group-title">Usuarios con los que tienes ${commonCount} ${bookWord} en común</h3>
+        <div class="match-group-list">
+          ${groupMatches.map(match => {
+            const percentage = Number(match.percentage);
+            const shared = match.shared.slice(0,5);
+            const extra = match.shared.length - shared.length;
+            return `
+              <article class="match">
+                <div class="score" style="--score:${Math.min(100,percentage)}"><strong>${percentage.toFixed(0)}%</strong></div>
+                <div>
+                  <h3>@${escapeHtml(match.username)}</h3>
+                  <div class="meta">${match.common_books} de tus ${match.my_books} libros coinciden</div>
+                  <div class="tags">
+                    ${shared.map(book=>`<span class="tag">${escapeHtml(book.title)}</span>`).join('')}
+                    ${extra>0?`<span class="tag">+${extra} más</span>`:''}
+                  </div>
+                  ${match.recommendations.length ? `<div class="recommend"><strong>Podría recomendarte:</strong> ${match.recommendations.map(book=>escapeHtml(book.title)).join(', ')}</div>` : ''}
+                </div>
+                <div class="match-actions">
+                  <div class="badge">Coincidencia real</div>
+                  <button class="btn btn-secondary btn-small contact-match"
+                    data-user="${escapeHtml(match.username)}">Escribir mensaje</button>
+                </div>
+              </article>`;
+          }).join('')}
         </div>
-        <div class="match-actions">
-          <div class="badge">Match real</div>
-          <button class="btn btn-secondary btn-small contact-match"
-            data-user="${escapeHtml(match.username)}">Escribir mensaje</button>
-        </div>
-      </article>`;
+      </section>`;
   }).join('');
 
   document.querySelectorAll('.contact-match').forEach(button => {
@@ -1176,50 +1195,29 @@ async function saveReviewedSuggestion() {
 
   const button = el('reviewSaveBtn');
   setBusy(button, true, 'Guardando…');
-  const existingBook = findCatalogBookByTitle(title);
 
-  if (!existingBook) {
-    const { error:insertError } = await client.from('books').insert({
-      id: buildGeneratedBookId(),
-      title,
-      author: author || null,
-      first_year: firstYear || null,
-      publisher: publisher || null,
-      genre: genre || null,
-      approved: true
-    });
+  const { data, error } = await client.rpc('admin_review_and_add_suggestion', {
+    p_suggestion_id: item.id,
+    p_title: title,
+    p_author: author || null,
+    p_first_year: firstYear || null,
+    p_publisher: publisher || null,
+    p_genre: genre || null
+  });
 
-    if (insertError) {
-      setBusy(button, false);
-      setNotice('reviewNotice', readableError(insertError));
-      return;
-    }
-  }
-
-  const { error:updateError } = await client.from('suggestions')
-    .update({
-      title,
-      author: author || null,
-      first_year: firstYear || null,
-      publisher: publisher || null,
-      status: 'approved'
-    })
-    .eq('id', item.id);
-
-  if (updateError) {
+  if (error) {
     setBusy(button, false);
-    setNotice('reviewNotice', existingBook
-      ? readableError(updateError)
-      : `El libro se incorporó al catálogo, pero no se pudo actualizar la propuesta: ${readableError(updateError)}`);
+    setNotice('reviewNotice', readableError(error));
     return;
   }
 
+  const result = Array.isArray(data) ? data[0] : data;
   await Promise.all([loadCatalog(), loadSuggestions()]);
   setBusy(button, false);
   closeSuggestionReview();
-  setNotice('suggestNotice', existingBook
-    ? `“${title}” ya existía en el catálogo. La propuesta quedó revisada y aprobada sin duplicarlo.`
-    : `“${title}” fue revisado e incorporado al catálogo.`, 'success');
+  setNotice('suggestNotice', result?.created
+    ? `“${title}” fue revisado e incorporado al catálogo.`
+    : `“${title}” ya existía en el catálogo. La propuesta quedó revisada y aprobada sin duplicarlo.`, 'success');
 }
 
 function buildCSV() {
