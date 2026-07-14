@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Match lector TLGBIQ+ peruano de Lecturas Vanas">
   <title>Lecturas Vanas — Match lector TLGBIQ+ peruano</title>
   <style>
     :root{
       --bg:#f7f1e8;--panel:#fffdf9;--ink:#241d2e;--muted:#746d7a;
       --accent:#6d3bb2;--accent2:#b86bd6;--soft:#eee2fb;--line:#e4d9ea;
-      --good:#2f8f68;--warn:#8a6416;--danger:#9b3342;
+      --good:#2f8f68;--warn:#8a6416;--danger:#9b3342;--blue:#315f9a;
       --shadow:0 18px 50px rgba(48,29,73,.12);--radius:22px;
     }
     *{box-sizing:border-box}
@@ -19,6 +20,7 @@
       color:var(--ink);min-height:100vh
     }
     button,input,select,textarea{font:inherit}
+    button:disabled,input:disabled,select:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}
     .shell{max-width:1220px;margin:0 auto;padding:28px 20px 60px}
     .hero{
       background:linear-gradient(135deg,#3e235f,#6d3bb2 55%,#b86bd6);color:#fff;
@@ -32,15 +34,25 @@
     .eyebrow{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;font-weight:800;opacity:.86}
     h1{font-size:clamp(2rem,5vw,4rem);line-height:1;margin:10px 0 12px;max-width:850px}
     .hero p{max-width:850px;font-size:1.05rem;line-height:1.55;margin:0;opacity:.92}
-    .grid{display:grid;grid-template-columns:.8fr 1.6fr;gap:22px;margin-top:22px}
+    .cloud-badge{
+      display:inline-flex;align-items:center;gap:7px;margin-top:17px;padding:8px 11px;
+      border-radius:999px;background:rgba(255,255,255,.14);font-size:.82rem;font-weight:800
+    }
+    .cloud-dot{width:9px;height:9px;border-radius:50%;background:#79e4b3;box-shadow:0 0 0 4px rgba(121,228,179,.15)}
     .panel{
       background:rgba(255,253,249,.97);border:1px solid rgba(105,77,128,.12);
       border-radius:var(--radius);box-shadow:var(--shadow);padding:24px
     }
+    .auth-panel{margin-top:22px}
+    .grid{display:grid;grid-template-columns:.82fr 1.65fr;gap:22px;margin-top:22px}
+    .section-panel{margin-top:22px}
     h2{margin:0 0 6px;font-size:1.35rem}
+    h3{margin:0 0 10px;font-size:1rem}
     .sub{color:var(--muted);margin:0 0 18px;line-height:1.45}
+    .small{font-size:.84rem;color:var(--muted);line-height:1.4}
     .field{display:flex;gap:10px;align-items:center}
-    input[type=text],input[type=number],select,textarea{
+    .form-grid{display:grid;gap:11px}
+    input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
       width:100%;border:1px solid var(--line);padding:13px 14px;border-radius:14px;
       background:#fff;color:var(--ink);outline:none
     }
@@ -50,25 +62,45 @@
       border:none;border-radius:14px;padding:12px 16px;font-weight:800;cursor:pointer;
       transition:.18s transform,.18s opacity,.18s box-shadow
     }
-    .btn:hover{transform:translateY(-1px)}.btn:active{transform:none}
+    .btn:hover:not(:disabled){transform:translateY(-1px)}
+    .btn:active:not(:disabled){transform:none}
     .btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(109,59,178,.25)}
     .btn-secondary{background:var(--soft);color:var(--accent)}
     .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
     .btn-danger{background:#fff0f1;color:var(--danger);border:1px solid #f1c9cf}
     .btn-small{padding:8px 11px;border-radius:10px;font-size:.82rem}
-    .user-pill{
-      display:flex;justify-content:space-between;align-items:center;margin-top:15px;
-      padding:13px 14px;border-radius:14px;background:#f5eefc
+    .auth-layout{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+    .auth-box{background:#faf6fc;border:1px solid var(--line);border-radius:18px;padding:18px}
+    .auth-tabs,.mail-tabs{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;
+      border-radius:999px;font-weight:800;cursor:pointer
     }
-    .user-pill strong{color:var(--accent)}
-    .catalog-toolbar{display:grid;grid-template-columns:1fr 170px auto;gap:10px;margin-bottom:14px}
+    .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .auth-view{display:none}.auth-view.active{display:block}
+    .account-card{
+      display:none;grid-template-columns:1fr auto;gap:16px;align-items:center;
+      background:linear-gradient(135deg,#f7efff,#fff);border:1px solid #d9c5ee;border-radius:18px;padding:18px
+    }
+    .account-card.visible{display:grid}
+    .account-name{font-size:1.15rem;font-weight:900;color:var(--accent)}
+    .account-meta{color:var(--muted);font-size:.86rem;margin-top:4px}
+    .role-badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#fff2d8;color:var(--warn);font-size:.72rem;font-weight:900}
+    .form-notice{
+      display:none;margin-top:12px;padding:12px 14px;border-radius:13px;font-size:.9rem;line-height:1.4
+    }
+    .form-notice.error{display:block;background:#fff0f1;color:#8f3340;border:1px solid #f0c8ce}
+    .form-notice.success{display:block;background:#eaf7f0;color:#247253;border:1px solid #bfe4d2}
+    .form-notice.info{display:block;background:#f0e8fb;color:#5e378d;border:1px solid #d8c4ef}
+    .form-notice.warning{display:block;background:#fff6df;color:#715817;border:1px solid #efddb0}
+    .catalog-toolbar{display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:14px}
     .catalog-info{
       display:flex;justify-content:space-between;gap:12px;align-items:center;
       margin:-4px 0 12px;color:var(--muted);font-size:.87rem
     }
     .books{
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
-      max-height:580px;overflow:auto;padding-right:4px
+      max-height:620px;overflow:auto;padding-right:4px
     }
     .book{
       display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--line);
@@ -76,6 +108,7 @@
     }
     .book:hover{transform:translateY(-1px);border-color:#c8addd}
     .book.selected{background:#f7efff;border-color:var(--accent)}
+    .book.saving{opacity:.6}
     .book input{margin-top:4px;accent-color:var(--accent)}
     .book-title{font-weight:800;font-size:.94rem;line-height:1.25}
     .book-author{color:var(--muted);font-size:.81rem;margin-top:4px}
@@ -86,10 +119,6 @@
       margin-top:16px;padding-top:16px;border-top:1px solid var(--line)
     }
     .count{font-weight:900;color:var(--accent)}
-    .results-panel,.suggest-panel,.mail-panel{margin-top:22px}
-    .results-head{
-      display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:14px
-    }
     .matches{display:grid;gap:14px}
     .match{
       display:grid;grid-template-columns:86px 1fr auto;gap:16px;align-items:center;
@@ -100,7 +129,7 @@
       background:conic-gradient(var(--accent) calc(var(--score)*1%),#eadff2 0);position:relative
     }
     .score:before{content:"";position:absolute;inset:8px;background:#fff;border-radius:50%}
-    .score strong{position:relative;font-size:1rem;color:var(--accent)}
+    .score strong{position:relative;font-size:.95rem;color:var(--accent)}
     .match h3{margin:0 0 4px;font-size:1.1rem}
     .meta{color:var(--muted);font-size:.9rem}
     .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
@@ -112,11 +141,12 @@
       font-weight:900;font-size:.83rem;white-space:nowrap;text-align:center
     }
     .empty{padding:28px;text-align:center;border:1px dashed #cdb8dc;border-radius:18px;color:var(--muted)}
-    .notice{
-      margin-top:12px;padding:12px 14px;border-radius:14px;background:#fff6df;
-      color:#765a17;font-size:.9rem;display:none
+    .loading{padding:24px;text-align:center;color:var(--muted)}
+    .spinner{
+      display:inline-block;width:18px;height:18px;border:3px solid #e4d9ea;border-top-color:var(--accent);
+      border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:7px
     }
-
+    @keyframes spin{to{transform:rotate(360deg)}}
     .suggest-box{background:#faf6fc;border:1px solid var(--line);border-radius:18px;padding:18px}
     .suggest-grid{display:grid;grid-template-columns:1.4fr 1.2fr 120px 1fr auto;gap:9px;align-items:start}
     .autocomplete-wrap{position:relative}
@@ -134,10 +164,6 @@
     .autocomplete-item strong{display:block;color:var(--ink);font-size:.88rem}
     .autocomplete-item span{display:block;color:var(--muted);font-size:.76rem;margin-top:2px}
     .help{font-size:.86rem;color:var(--muted);margin:10px 0 0}
-    .form-notice{display:none;margin-top:12px;padding:12px 14px;border-radius:13px;font-size:.9rem;line-height:1.4}
-    .form-notice.error{display:block;background:#fff0f1;color:#8f3340;border:1px solid #f0c8ce}
-    .form-notice.success{display:block;background:#eaf7f0;color:#247253;border:1px solid #bfe4d2}
-    .form-notice.info{display:block;background:#f0e8fb;color:#5e378d;border:1px solid #d8c4ef}
     .pending-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 10px}
     .pending-list{display:grid;gap:10px}
     .pending{
@@ -146,57 +172,50 @@
     }
     .pending strong{display:block}
     .pending .details{font-size:.84rem;color:var(--muted);margin-top:3px}
-    .pending-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+    .pending-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
     .status{
       display:inline-block;margin-top:6px;background:#fff2d8;color:var(--warn);
       padding:4px 8px;border-radius:999px;font-size:.74rem;font-weight:800
     }
+    .status.approved{background:#e4f5ed;color:var(--good)}
+    .status.rejected{background:#fff0f1;color:var(--danger)}
+    .status.needs_info{background:#e9f1fc;color:var(--blue)}
     .export-panel{
       display:none;margin-top:14px;background:#f7f2fb;border:1px solid var(--line);
       border-radius:15px;padding:14px
     }
     .export-panel textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.78rem}
     .export-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
-    .export-status{font-size:.84rem;color:var(--muted)}
-
-    .privacy-note{
-      background:#fff6df;border:1px solid #efddb0;color:#715817;border-radius:15px;
-      padding:12px 14px;font-size:.88rem;line-height:1.45;margin-bottom:16px
-    }
     .mail-layout{display:grid;grid-template-columns:.9fr 1.4fr;gap:18px}
-    .compose{
-      background:#faf6fc;border:1px solid var(--line);border-radius:18px;padding:17px
-    }
-    .compose h3,.mailbox h3{margin:0 0 12px;font-size:1rem}
+    .compose{background:#faf6fc;border:1px solid var(--line);border-radius:18px;padding:17px}
     .compose-fields{display:grid;gap:10px}
-    .mail-tabs{display:flex;gap:8px;margin-bottom:12px}
-    .tab{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 13px;border-radius:999px;font-weight:800;cursor:pointer}
-    .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .message-list{display:grid;gap:10px}
-    .message{
-      border:1px solid var(--line);border-radius:15px;background:#fff;padding:13px
-    }
+    .message{border:1px solid var(--line);border-radius:15px;background:#fff;padding:13px}
+    .message.unread{border-left:5px solid var(--accent)}
     .message-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
     .message-head strong{color:var(--accent)}
     .message-date{font-size:.74rem;color:var(--muted);white-space:nowrap}
     .message-body{white-space:pre-wrap;margin-top:8px;line-height:1.45;font-size:.91rem}
     .message-actions{display:flex;gap:7px;margin-top:10px}
-    .mail-locked{opacity:.62;pointer-events:none}
+    .login-required{
+      display:none;margin-bottom:15px;background:#fff6df;border:1px solid #efddb0;color:#715817;
+      border-radius:14px;padding:11px 13px;font-size:.88rem
+    }
+    .login-required.visible{display:block}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px}
+    .connection-error{display:none;margin-top:14px}
     .footer{color:var(--muted);text-align:center;margin-top:24px;font-size:.86rem}
-
-    @media(max-width:900px){
-      .grid,.mail-layout{grid-template-columns:1fr}
+    @media(max-width:920px){
+      .grid,.auth-layout,.mail-layout{grid-template-columns:1fr}
       .books{grid-template-columns:1fr}
-      .suggest-grid{grid-template-columns:1fr 1fr}
-      .suggest-grid .btn{grid-column:1/-1}
-      .match{grid-template-columns:72px 1fr}
-      .match-actions{grid-column:2;justify-items:start}
+      .suggest-grid{grid-template-columns:1fr 1fr}.suggest-grid .btn{grid-column:1/-1}
+      .match{grid-template-columns:72px 1fr}.match-actions{grid-column:2;justify-items:start}
     }
     @media(max-width:590px){
       .shell{padding:14px 12px 34px}.hero{padding:25px 20px;border-radius:22px}.panel{padding:18px}
-      .field,.selection-summary,.results-head,.catalog-toolbar,.suggest-grid{display:grid;grid-template-columns:1fr}
-      .btn{width:100%}.pending{grid-template-columns:1fr}.pending-actions{justify-content:flex-start}
-      .pending-actions .btn,.message-actions .btn,.export-actions .btn{width:auto}
+      .field,.selection-summary,.section-head,.catalog-toolbar,.suggest-grid{display:grid;grid-template-columns:1fr}
+      .btn{width:100%}.account-card{grid-template-columns:1fr}.pending{grid-template-columns:1fr}
+      .pending-actions{justify-content:flex-start}.pending-actions .btn,.message-actions .btn,.export-actions .btn{width:auto}
       .message-head{display:block}.message-date{display:block;margin-top:4px}
     }
   </style>
@@ -206,27 +225,69 @@
   <section class="hero">
     <div class="eyebrow">Lecturas Vanas</div>
     <h1>Encuentra tu match lector TLGBIQ+ peruano</h1>
-    <p>Construye tu biblioteca, descubre coincidencias y conversa mediante un buzón interno sin revelar una dirección de correo electrónico.</p>
+    <p>Construye una biblioteca que se guarda en la nube, encuentra afinidades reales y conversa mediante un buzón interno privado.</p>
+    <div class="cloud-badge"><span class="cloud-dot"></span> Datos conectados a Supabase</div>
+  </section>
+
+  <section class="panel auth-panel">
+    <div id="authLoggedOut">
+      <div class="auth-layout">
+        <div>
+          <h2>Cuenta de usuario</h2>
+          <p class="sub">El correo se utiliza para entrar y recuperar la cuenta. Los demás usuarios solo verán el nombre de usuario elegido.</p>
+          <div class="auth-tabs">
+            <button class="tab active" data-auth-tab="signup">Crear cuenta</button>
+            <button class="tab" data-auth-tab="login">Ingresar</button>
+          </div>
+        </div>
+        <div class="auth-box">
+          <div id="signupView" class="auth-view active">
+            <h3>Crear una cuenta</h3>
+            <div class="form-grid">
+              <input id="signupUsername" type="text" maxlength="30" autocomplete="username" placeholder="Nombre de usuario público">
+              <input id="signupEmail" type="email" autocomplete="email" placeholder="Correo electrónico">
+              <input id="signupPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Contraseña (mínimo 8 caracteres)">
+              <button id="signupBtn" class="btn btn-primary">Crear cuenta</button>
+              <button id="resendBtn" class="btn btn-ghost" style="display:none">Reenviar confirmación</button>
+            </div>
+          </div>
+          <div id="loginView" class="auth-view">
+            <h3>Ingresar</h3>
+            <div class="form-grid">
+              <input id="loginEmail" type="email" autocomplete="email" placeholder="Correo electrónico">
+              <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Contraseña">
+              <button id="loginBtn" class="btn btn-primary">Ingresar</button>
+            </div>
+          </div>
+          <div id="authNotice" class="form-notice" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="accountCard" class="account-card">
+      <div>
+        <div>Sesión iniciada como <span id="accountName" class="account-name"></span><span id="adminBadge" class="role-badge" style="display:none">Administrador</span></div>
+        <div id="accountEmail" class="account-meta"></div>
+      </div>
+      <button id="logoutBtn" class="btn btn-ghost">Cerrar sesión</button>
+    </div>
+    <div id="connectionError" class="form-notice error connection-error"></div>
   </section>
 
   <section class="grid">
     <div class="panel">
-      <h2>1. Crea tu usuario</h2>
-      <p class="sub">En esta prueba, el perfil se guarda solamente en este navegador.</p>
-      <div class="field">
-        <input id="username" type="text" maxlength="24" placeholder="Ejemplo: cronicaslector">
-        <button id="saveUser" class="btn btn-primary">Guardar</button>
+      <h2>1. Mi biblioteca</h2>
+      <p class="sub">Cada libro que marques se guarda en tu cuenta y aparecerá al entrar desde otro dispositivo.</p>
+      <div id="libraryLoginRequired" class="login-required visible">Puedes consultar el catálogo sin entrar, pero necesitas una cuenta para marcar libros.</div>
+      <div class="selection-summary" style="border-top:0;padding-top:0;margin-top:0">
+        <div><span class="count" id="selectedCount">0</span> libros registrados</div>
+        <span id="saveState" class="small"></span>
       </div>
-      <div id="userPill" class="user-pill" style="display:none">
-        <span>Usuario activo: <strong id="activeUser"></strong></span>
-        <button id="changeUser" class="btn btn-ghost">Cambiar</button>
-      </div>
-      <div id="notice" class="notice"></div>
     </div>
 
     <div class="panel">
-      <h2>2. Marca los libros que has leído</h2>
-      <p class="sub">Catálogo de obras peruanas de temática o lectura TLGBIQ+ incluido en el listado proporcionado.</p>
+      <h2>2. Catálogo peruano TLGBIQ+</h2>
+      <p class="sub">Las obras se cargan desde el catálogo común de la aplicación.</p>
       <div class="catalog-toolbar">
         <input id="search" type="text" placeholder="Buscar título, autor, año o género…">
         <select id="sort">
@@ -234,668 +295,1005 @@
           <option value="yearDesc">Año: reciente a antiguo</option>
           <option value="title">Título A–Z</option>
         </select>
-        <button id="selectDemo" class="btn btn-secondary">Cargar ejemplo</button>
       </div>
       <div class="catalog-info">
-        <span><strong id="catalogCount"></strong> obras en el catálogo</span>
+        <span><strong id="catalogCount">0</strong> obras en el catálogo</span>
         <span id="visibleCount"></span>
       </div>
-      <div id="books" class="books"></div>
-      <div class="selection-summary">
-        <div><span class="count" id="selectedCount">0</span> libros seleccionados</div>
-        <button id="calculate" class="btn btn-primary">Buscar coincidencias</button>
-      </div>
+      <div id="books" class="books"><div class="loading"><span class="spinner"></span>Cargando catálogo…</div></div>
     </div>
   </section>
 
-  <section class="panel results-panel">
-    <div class="results-head">
+  <section class="panel section-panel">
+    <div class="section-head">
       <div>
-        <h2>3. Tus coincidencias lectoras</h2>
-        <p class="sub" style="margin-bottom:0">Solo aparecen usuarios con 50 % o más de coincidencia.</p>
+        <h2>3. Mis matches reales</h2>
+        <p class="sub" style="margin-bottom:0">Se muestran usuarios que hayan leído al menos el 50 % de los libros de tu biblioteca.</p>
       </div>
-      <button id="reset" class="btn btn-ghost">Reiniciar prueba</button>
+      <button id="calculateBtn" class="btn btn-primary" data-auth-required>Buscar coincidencias</button>
     </div>
-    <div id="matches" class="matches">
-      <div class="empty">Selecciona libros y pulsa “Buscar coincidencias”.</div>
-    </div>
+    <div id="matchesLoginRequired" class="login-required visible">Inicia sesión y registra al menos un libro para calcular coincidencias reales.</div>
+    <div id="matches" class="matches"><div class="empty">Todavía no has buscado coincidencias.</div></div>
   </section>
 
-  <section class="panel suggest-panel">
+  <section class="panel section-panel">
     <h2>4. Proponer un libro que no está en el catálogo</h2>
-    <p class="sub">El <strong>título es obligatorio</strong>. El autor, el año y la editorial son opcionales. La propuesta quedará pendiente hasta que el equipo la revise.</p>
-
+    <p class="sub">El título es obligatorio. El autor, el año y la editorial son opcionales. Todas las propuestas se guardan en una base común.</p>
+    <div id="suggestLoginRequired" class="login-required visible">Inicia sesión para enviar una propuesta.</div>
     <div class="suggest-box">
       <div class="suggest-grid">
         <div class="autocomplete-wrap">
-          <input id="suggestTitle" type="text" autocomplete="off" placeholder="Título">
+          <input id="suggestTitle" type="text" autocomplete="off" placeholder="Título" data-auth-required>
           <div id="autocompleteList" class="autocomplete-list" role="listbox"></div>
         </div>
-        <input id="suggestAuthor" type="text" placeholder="Autor/a o editor/a">
-        <input id="suggestYear" type="text" inputmode="numeric" maxlength="20" placeholder="Año">
-        <input id="suggestPublisher" type="text" placeholder="Editorial">
-        <button id="addSuggestion" class="btn btn-primary">Enviar propuesta</button>
+        <input id="suggestAuthor" type="text" placeholder="Autor/a o editor/a" data-auth-required>
+        <input id="suggestYear" type="text" inputmode="numeric" maxlength="20" placeholder="Año" data-auth-required>
+        <input id="suggestPublisher" type="text" placeholder="Editorial" data-auth-required>
+        <button id="addSuggestionBtn" class="btn btn-primary" data-auth-required>Enviar propuesta</button>
       </div>
       <div id="suggestNotice" class="form-notice" role="status" aria-live="polite"></div>
-      <p class="help">Escribe el título para enviar una propuesta. Al escribirlo aparecerán coincidencias del catálogo; al elegir una se completarán el autor y el año y se avisará que la obra ya existe.</p>
+      <p class="help">Al escribir el título aparecen coincidencias del catálogo. Si eliges una obra existente, se completan sus datos y no se envía una propuesta duplicada.</p>
     </div>
 
     <div class="pending-head">
       <div>
-        <h2 style="font-size:1.08rem;margin:0">Propuestas pendientes de revisión</h2>
+        <h3 id="suggestionsHeading">Mis propuestas</h3>
         <div class="meta"><span id="pendingCount">0</span> propuesta(s)</div>
       </div>
-      <button id="exportSuggestions" class="btn btn-secondary" style="display:none">Exportar CSV</button>
+      <button id="exportSuggestionsBtn" class="btn btn-secondary" style="display:none">Exportar CSV</button>
     </div>
-
-    <div id="pendingList" class="pending-list">
-      <div class="empty">Todavía no hay propuestas.</div>
-    </div>
-
-    <div id="exportPanel" class="export-panel" style="display:none">
+    <div id="pendingList" class="pending-list"><div class="empty">Inicia sesión para consultar tus propuestas.</div></div>
+    <div id="exportPanel" class="export-panel">
       <strong>CSV preparado</strong>
-      <p class="help">La descarga se intenta automáticamente. Si el visor de ChatGPT la bloquea, copia el contenido o usa el botón de descarga de abajo.</p>
-      <textarea id="csvPreview" readonly aria-label="Contenido CSV"></textarea>
+      <textarea id="csvPreview" readonly></textarea>
       <div class="export-actions">
-        <button id="downloadCSV" class="btn btn-primary btn-small">Descargar archivo</button>
-        <button id="copyCSV" class="btn btn-ghost btn-small">Copiar CSV</button>
-        <span id="exportStatus" class="export-status"></span>
+        <button id="downloadCSVBtn" class="btn btn-primary btn-small">Descargar archivo</button>
+        <button id="copyCSVBtn" class="btn btn-ghost btn-small">Copiar CSV</button>
+        <span id="exportStatus" class="small"></span>
       </div>
     </div>
   </section>
 
-  <section id="mailboxSection" class="panel mail-panel">
+  <section id="mailboxSection" class="panel section-panel">
     <h2>5. Buzón privado</h2>
-    <p class="sub">Sirve para escribir a tus matches y para que el equipo pueda contactar a quien propuso un libro.</p>
-    <div class="privacy-note">
-      En este prototipo los mensajes se guardan localmente en el navegador y la privacidad es solo una simulación.
-      En la aplicación pública se requerirá inicio de sesión, una base de datos y controles de acceso para que cada usuario vea únicamente sus conversaciones.
-    </div>
-
-    <div id="mailContent" class="mail-layout">
+    <p class="sub">Puedes escribir a tus matches. El mensaje solo es visible para quien lo envía y quien lo recibe.</p>
+    <div id="mailLoginRequired" class="login-required visible">Inicia sesión para utilizar el buzón.</div>
+    <div class="mail-layout">
       <div class="compose">
         <h3>Nuevo mensaje</h3>
         <div class="compose-fields">
-          <input id="messageTo" type="text" list="userOptions" autocomplete="off" placeholder="Destinatario, por ejemplo @biblioteca_arcoiris">
-          <datalist id="userOptions"></datalist>
-          <textarea id="messageBody" maxlength="2000" placeholder="Escribe aquí tu mensaje privado…"></textarea>
-          <button id="sendMessage" class="btn btn-primary">Enviar mensaje</button>
+          <input id="messageTo" type="text" autocomplete="off" placeholder="Nombre de usuario destinatario" data-auth-required>
+          <textarea id="messageBody" maxlength="2000" placeholder="Escribe aquí tu mensaje privado…" data-auth-required></textarea>
+          <button id="sendMessageBtn" class="btn btn-primary" data-auth-required>Enviar mensaje</button>
           <div id="mailNotice" class="form-notice" role="status" aria-live="polite"></div>
         </div>
       </div>
-
-      <div class="mailbox">
+      <div>
         <div class="mail-tabs">
-          <button class="tab active" data-tab="inbox">Recibidos (<span id="inboxCount">0</span>)</button>
-          <button class="tab" data-tab="sent">Enviados (<span id="sentCount">0</span>)</button>
+          <button class="tab active" data-mail-tab="inbox">Recibidos (<span id="inboxCount">0</span>)</button>
+          <button class="tab" data-mail-tab="sent">Enviados (<span id="sentCount">0</span>)</button>
         </div>
-        <div id="messageList" class="message-list">
-          <div class="empty">Crea un usuario para usar el buzón.</div>
-        </div>
+        <div id="messageList" class="message-list"><div class="empty">Inicia sesión para consultar el buzón.</div></div>
       </div>
     </div>
   </section>
 
-  <div class="footer">Prototipo local de Lecturas Vanas · Catálogo, propuestas, matches y mensajería interna.</div>
+  <div class="footer">Lecturas Vanas · Biblioteca, propuestas, matches y mensajes conectados a una base de datos común.</div>
 </main>
 
-<script>
-const catalog = [{"title": "Carta sobre los maricones", "author": "Anónimo en el Mercurio Peruano", "year": "1791", "genre": "Crónica en periódico", "id": "b001"}, {"title": "Lorenzita", "author": "Manuel Atanasio Fuentes", "year": "1878", "genre": "Cuento en revista", "id": "b002"}, {"title": "Memorias de Dorish Dam", "author": "Delia Colmenares", "year": "1929?", "genre": "Novela", "id": "b003"}, {"title": "Rosas matinales", "author": "Carlos Fonseca / Nelly Fonseca", "year": "1934", "genre": "Poesía", "id": "b004"}, {"title": "Duque", "author": "José Diez-Canseco", "year": "1934", "genre": "Novela", "id": "b005"}, {"title": "Maquillage", "author": "Jorge Eduardo Eielson", "year": "1950", "genre": "Teatro", "id": "b006"}, {"title": "El Sexto", "author": "José María Arguedas", "year": "1961", "genre": "Novela", "id": "b007"}, {"title": "Los inocentes", "author": "Oswaldo Reynoso", "year": "1961", "genre": "Novela", "id": "b008"}, {"title": "El monstruo sagrado", "author": "Edgardo de Habich", "year": "1964?", "genre": "Novela", "id": "b009"}, {"title": "En octubre no hay milagros", "author": "Oswaldo Reynoso", "year": "1965", "genre": "Novela", "id": "b010"}, {"title": "Con Jimmy en Paracas", "author": "Alfredo Bryce Echenique", "year": "1967", "genre": "Cuento", "id": "b011"}, {"title": "Conversación en La Catedral", "author": "Mario Vargas Llosa", "year": "1969", "genre": "Novela", "id": "b012"}, {"title": "Un mundo para Julius", "author": "Alfredo Bryce Echenique", "year": "1970", "genre": "Novela", "id": "b013"}, {"title": "El escarabajo y el hombre", "author": "Oswaldo Reynoso", "year": "1970", "genre": "Novela", "id": "b014"}, {"title": "El cuerpo de Giulia-no", "author": "Jorge Eduardo Eielson", "year": "1971", "genre": "Novela", "id": "b015"}, {"title": "«Terra incógnita», en Tercer volumen de La palabra del mudo", "author": "Julio Ramón Ribeyro", "year": "1977", "genre": "Cuento", "id": "b016"}, {"title": "Obra poética", "author": "César Moro", "year": "1980", "genre": "Poesía", "id": "b017"}, {"title": "Historia de Mayta", "author": "Mario Vargas Llosa", "year": "1984", "genre": "Novela", "id": "b018"}, {"title": "El deseo diferente", "author": "Doctor Luibade", "year": "1986?", "genre": "Novela", "id": "b019"}, {"title": "La Chunga", "author": "Mario Vargas Llosa", "year": "1986", "genre": "Teatro", "id": "b020"}, {"title": "¿Quieres estar conmigo?", "author": "Augusto Cabada y Roberto Ángeles", "year": "1988", "genre": "Teatro", "id": "b021"}, {"title": "Homisidios. Historia de un flete por C. Vargas", "author": "C. Vargas", "year": "1992", "genre": "Novela", "id": "b022"}, {"title": "El innombrable cuerpo del deseo", "author": "Violeta Barrientos", "year": "1992", "genre": "Poesía", "id": "b023"}, {"title": "Efecto invernadero", "author": "Mario Bellatin", "year": "1992", "genre": "Novela", "id": "b024"}, {"title": "A flor de piel", "author": "Marcela Robles", "year": "1993", "genre": "Cuentos", "id": "b025"}, {"title": "En busca de Aladino", "author": "Oswaldo Reynoso", "year": "1993", "genre": "Novela", "id": "b026"}, {"title": "Las dos caras del deseo", "author": "Carmen Ollé", "year": "1994", "genre": "Novela", "id": "b027"}, {"title": "Ximena de dos caminos", "author": "Laura Riesco", "year": "1994", "genre": "Novela", "id": "b028"}, {"title": "Salón de belleza", "author": "Mario Bellatin", "year": "1994", "genre": "Novela", "id": "b029"}, {"title": "Interiores", "author": "Esther Castañeda", "year": "1994", "genre": "Sin dato", "id": "b030"}, {"title": "Me perturbas", "author": "Rocío Silva Santisteban", "year": "1994", "genre": "Sin dato", "id": "b031"}, {"title": "No se lo digas a nadie", "author": "Jaime Bayly", "year": "1994", "genre": "Novela", "id": "b032"}, {"title": "Fue ayer y no me acuerdo", "author": "Jaime Bayly", "year": "1995", "genre": "Novela", "id": "b033"}, {"title": "Instrucciones para atrapar a un ángel", "author": "Javier Arévalo", "year": "1995", "genre": "Sin dato", "id": "b034"}, {"title": "Los eunucos inmortales", "author": "Oswaldo Reynoso", "year": "1995", "genre": "Novela", "id": "b035"}, {"title": "Orquídeas del paraíso", "author": "Enrique Planas", "year": "1996", "genre": "Novela", "id": "b036"}, {"title": "Ojos bonitos, cuadros feos", "author": "Mario Vargas Llosa", "year": "1996", "genre": "Teatro", "id": "b037"}, {"title": "56 días en la vida de un frik", "author": "Morella Petrozzi", "year": "1996", "genre": "Novela", "id": "b038"}, {"title": "Matacabros", "author": "Sergio Galarza", "year": "1996", "genre": "Novela", "id": "b039"}, {"title": "Extrañando a Diego", "author": "Jaime Bayly", "year": "1997", "genre": "Cuento", "id": "b040"}, {"title": "La noche es virgen", "author": "Jaime Bayly", "year": "1997", "genre": "Novela", "id": "b041"}, {"title": "A las orillas de Lesbos", "author": "MHOL", "year": "1997", "genre": "Cuentos", "id": "b042"}, {"title": "Canto de dolor, no repitan la canción: la historia de Alex Brocca", "author": "Alejandro Iván Gutiérrez", "year": "2000", "genre": "Novela", "id": "b043"}, {"title": "Los amigos que perdí", "author": "Jaime Bayly", "year": "2000", "genre": "Novela", "id": "b044"}, {"title": "Destejiendo el silencio", "author": "Asociación Dorian", "year": "2001", "genre": "Cuentos", "id": "b045"}, {"title": "De amores y luchas. Diversidad sexual, derechos humanos y ciudadanía", "author": "Jorge Bracamonte Allaín (editor)", "year": "2001", "genre": "Ensayos", "id": "b046"}, {"title": "La mujer de mi hermano", "author": "Jaime Bayly", "year": "2002", "genre": "Novela", "id": "b047"}, {"title": "Un trámite difícil", "author": "Javier Ponce Gambirazio", "year": "2003", "genre": "Novela", "id": "b048"}, {"title": "Maldita ternura", "author": "Beto Ortiz", "year": "2004", "genre": "Novela", "id": "b049"}, {"title": "El huracán lleva tu nombre", "author": "Jaime Bayly", "year": "2004", "genre": "Novela", "id": "b050"}, {"title": "«Los disimulos de la soledad: Haya de la Torre, su calculado celibato y una teoría sobre la homosexualidad», en Llámalo amor si quieres", "author": "Toño Angulo Daneri", "year": "2004", "genre": "Crónicas", "id": "b051"}, {"title": "Mirar sin verte", "author": "Oswaldo Cattone", "year": "2005", "genre": "Sin dato", "id": "b052"}, {"title": "El goce de la piel", "author": "Oswaldo Reynoso", "year": "2005", "genre": "Novela", "id": "b053"}, {"title": "Una vida distinta", "author": "Javier Ponce Gambirazio", "year": "2006", "genre": "Novela", "id": "b054"}, {"title": "La imagen in/decente. Diversidad sexual, prejuicio y discriminación en la prensa escrita peruana", "author": "Carlos Cosme, Martín Jaime, Alejandro Merino y José Luis Rosales", "year": "2007", "genre": "Ensayo", "id": "b055"}, {"title": "Paisaje terrestre", "author": "Doris Moromisato", "year": "2007", "genre": "Poesía", "id": "b056"}, {"title": "queridolucía", "author": "Rafael García-Godos Salazar", "year": "2007", "genre": "Poesía", "id": "b057"}, {"title": "Cromosoma Z", "author": "Jennifer Thorndike", "year": "2007", "genre": "Cuentos", "id": "b058"}, {"title": "Route 66", "author": "Tania Agüero Dejo", "year": "2007", "genre": "Poesía", "id": "b059"}, {"title": "El canalla sentimental", "author": "Jaime Bayly", "year": "2008", "genre": "Novela", "id": "b060"}, {"title": "«La virgen de la Flora», en El pintor de Lavoes y otras crónicas", "author": "Luis Miranda", "year": "2008", "genre": "Crónica", "id": "b061"}, {"title": "César Moro. Soberanía y transgresión", "author": "Mariela Dreyfus", "year": "2008", "genre": "Ensayo", "id": "b062"}, {"title": "Al pie del Támesis", "author": "Mario Vargas Llosa", "year": "2008", "genre": "Teatro", "id": "b063"}, {"title": "Militia amoris", "author": "Morella Petrozzi", "year": "2009", "genre": "Poesía", "id": "b064"}, {"title": "Islas", "author": "Rodrigo La Hoz", "year": "2009", "genre": "Cómic", "id": "b065"}, {"title": "No busco novio", "author": "Esther Vargas", "year": "2010", "genre": "Crónicas", "id": "b066"}, {"title": "Thecnetos", "author": "Luis Arbaiza", "year": "2010?", "genre": "Novela", "id": "b067"}, {"title": "Morirás mañana", "author": "Jaime Bayly", "year": "2010", "genre": "Novela", "id": "b068"}, {"title": "Diario de una pasiva", "author": "Marco Rodríguez", "year": "2010", "genre": "Crónicas", "id": "b069"}, {"title": "El sueño del celta", "author": "Mario Vargas Llosa", "year": "2010", "genre": "Novela", "id": "b070"}, {"title": "Voces para Lilith", "author": "Claudia Salazar", "year": "2011", "genre": "Cuentos", "id": "b071"}, {"title": "Oswaldo Reynoso, el tesoro de la juventud", "author": "Enrique Planas (editor)", "year": "2011", "genre": "Varios", "id": "b072"}, {"title": "Viva esa chica. Memorias de una lesbiana valiente", "author": "Susel Paredes", "year": "2011", "genre": "Crónica", "id": "b073"}, {"title": "El chico que diste por muerto", "author": "Javier Ponce Gambirazio", "year": "2012", "genre": "Novela", "id": "b074"}, {"title": "Maquillage", "author": "Jorge Eduardo Eielson", "year": "2012", "genre": "Teatro", "id": "b075"}, {"title": "En busca de la sonrisa encontrada", "author": "Oswaldo Reynoso", "year": "2012", "genre": "Cuentos", "id": "b076"}, {"title": "Homo", "author": "Ricardo Musse", "year": "2012", "genre": "Poesía", "id": "b077"}, {"title": "El amante uruguayo", "author": "Santiago Roncagliolo", "year": "2012", "genre": "Novela", "id": "b078"}, {"title": "La sangre de la aurora", "author": "Claudia Salazar", "year": "2013", "genre": "Novela", "id": "b079"}, {"title": "Un extraordinario homenaje", "author": "Daniel Dillon", "year": "2013", "genre": "Teatro", "id": "b080"}, {"title": "Saturday Night Thriller", "author": "Giuseppe Campuzano", "year": "2013", "genre": "Crónicas, ensayos gráficos", "id": "b081"}, {"title": "Sucesos de escritura. Cuerpo y representación homoerótica en la narrativa de Mario Bellatin. Los casos de Efecto invernadero y Salón de belleza", "author": "Judith Paredes Morales", "year": "2013", "genre": "Ensayo", "id": "b082"}, {"title": "Navegante en tierra", "author": "Luis Vásquez Coronel", "year": "2013", "genre": "Cuentos", "id": "b083"}, {"title": "Lima ambiente Miraflores deprimente", "author": "Guillermo Díaz", "year": "2014", "genre": "Novela", "id": "b084"}, {"title": "Los secretos de Elvira", "author": "Hugo Coya", "year": "2014", "genre": "Novela histórica", "id": "b085"}, {"title": "El efecto espejo", "author": "Juan Diego Vergara", "year": "2014", "genre": "Gráficos", "id": "b086"}, {"title": "Arequipa lámpara incandescente", "author": "Oswaldo Reynoso", "year": "2014", "genre": "Novela", "id": "b087"}, {"title": "Los corazones anestesiados", "author": "Miguel Fegale", "year": "2015", "genre": "Novela", "id": "b088"}, {"title": "Hey, soy gay", "author": "Patricia del Río y María Luisa del Río", "year": "2015", "genre": "Crónicas", "id": "b089"}, {"title": "Camila tiene dos mamás", "author": "Vero Ferrari", "year": "2015", "genre": "Infantil", "id": "b090"}, {"title": "Coordenadas temporales", "author": "Claudia Salazar", "year": "2016", "genre": "Cuentos", "id": "b091"}, {"title": "Cinco Esquinas", "author": "Mario Vargas Llosa", "year": "2016", "genre": "Novela", "id": "b092"}, {"title": "«Teatro, política y sexualidades en la escena limeña», en Otras geografías. Otros mapas teatrales", "author": "Percy Encinas", "year": "2016", "genre": "Teatro", "id": "b093"}, {"title": "La noche de los alfileres", "author": "Santiago Roncagliolo", "year": "2016", "genre": "Novela", "id": "b094"}, {"title": "Más allá del arcoíris", "author": "Alberto de Belaunde", "year": "2017", "genre": "Entrevistas", "id": "b095"}, {"title": "Dicen de mí", "author": "Gabriela Wiener", "year": "2017", "genre": "Crónica", "id": "b096"}, {"title": "Sexo al cubo: 27 relatos sobre la sexualidad femenina en el Perú escritos por mujeres", "author": "José Donayre Hoefken (selección y prólogo)", "year": "2017", "genre": "Cuentos", "id": "b097"}, {"title": "Cuando los hijos duermen", "author": "Juan Carlos Cortázar", "year": "2017", "genre": "Novela", "id": "b098"}, {"title": "Dorita y el Dragón", "author": "Lakita", "year": "2017", "genre": "Infantil", "id": "b099"}, {"title": "Tergiverso", "author": "Marilia Navarro", "year": "2017", "genre": "Poesía", "id": "b100"}, {"title": "Álbum", "author": "Melissa Ghezzi", "year": "2017", "genre": "Libro objeto", "id": "b101"}, {"title": "Diversidad sexual y sistemas religiosos", "author": "Martín Jaime (editor)", "year": "2017", "genre": "Ensayo", "id": "b102"}, {"title": "MVX0. Música para monstruos", "author": "Rafael García-Godos Salazar", "year": "2017", "genre": "Poesía", "id": "b103"}, {"title": "Papi ¡no quiero ser gay!", "author": "Ricardo Palma Michelsen", "year": "2017", "genre": "Novela", "id": "b104"}, {"title": "Noches de vodka. El diario de la puta inca", "author": "Federico Villarreal", "year": "2018", "genre": "Novela", "id": "b105"}, {"title": "Todos los zánganos son reinas", "author": "Fidel Chaparro", "year": "2018", "genre": "Poesía", "id": "b106"}, {"title": "El cine malo es mejor", "author": "Javier Ponce Gambirazio", "year": "2018", "genre": "Novela", "id": "b107"}, {"title": "Cuarto oscuro y espectros vengadores que salen en la noche", "author": "Jorge Montoya, Gia Gia y otres", "year": "2018", "genre": "Poesía y gráficos", "id": "b108"}, {"title": "El inmenso desvío", "author": "Juan Carlos Cortázar", "year": "2018", "genre": "Cuentos", "id": "b109"}, {"title": "Género en el Perú. Nuevos enfoques. Miradas interdisciplinarias", "author": "Wilson Hernández Breña (editor)", "year": "2018", "genre": "Ensayo", "id": "b110"}, {"title": "No retiro nada", "author": "Alberto de Belaunde", "year": "2019", "genre": "Ensayo", "id": "b111"}, {"title": "Señorita ¿quiere ser mi esposa?", "author": "Esther Vargas", "year": "2019", "genre": "Cuentos", "id": "b112"}, {"title": "Más allá del muro", "author": "Eva Bracamonte Fefer", "year": "2019", "genre": "Crónica", "id": "b113"}, {"title": "Yo soy una señora", "author": "Jaime Bayly", "year": "2019", "genre": "Novela", "id": "b114"}, {"title": "Lo tenemos levantado hacia el señor", "author": "Javier Ponce Gambirazio", "year": "2019", "genre": "Novela", "id": "b115"}, {"title": "Compórtense como señoritas", "author": "Karen Luy", "year": "2019", "genre": "Novela", "id": "b116"}, {"title": "Tragicomedias lésbicas", "author": "La Fuega Ilustra", "year": "2019", "genre": "Cómic impreso / compilación", "id": "b117"}, {"title": "El príncipe Carolina", "author": "Lakita", "year": "2019", "genre": "Infantil, libro artesanal", "id": "b118"}, {"title": "A contracorriente. La historia de Susel Paredes", "author": "Lucía Soliz", "year": "2019", "genre": "Crónica", "id": "b119"}, {"title": "Aprendiendo a enterrar a los muertos", "author": "María Font", "year": "2019", "genre": "Poesía", "id": "b120"}, {"title": "Ficciones disidentes en la tierra de la misoginia", "author": "Miguel A. López", "year": "2019", "genre": "Ensayo", "id": "b121"}, {"title": "Yo soy tu padre", "author": "Ricardo Morán", "year": "2019", "genre": "Crónica", "id": "b122"}, {"title": "Azúcar Amargo", "author": "Rodrigo Ccallo", "year": "2019", "genre": "Cómic impreso / compilación", "id": "b123"}, {"title": "Las imposibles orquídeas", "author": "Violeta Barrientos", "year": "2019", "genre": "Poesía", "id": "b124"}, {"title": "El colector de orgasmos", "author": "Alain Espinoza Vigil", "year": "2020", "genre": "Novela", "id": "b125"}, {"title": "Escenas catalanas: errancias antropológico-sexuales", "author": "Héctor Acuña / Frau Diamanda", "year": "2020", "genre": "Crónicas", "id": "b126"}, {"title": "Mejor el fuego", "author": "José Carlos Yrigoyen", "year": "2020", "genre": "Novela", "id": "b127"}, {"title": "Como si nos tuvieran miedo", "author": "Juan Carlos Cortázar", "year": "2020", "genre": "Novela", "id": "b128"}, {"title": "Húmedos, sucios y violentos", "author": "Kathy Serrano", "year": "2020", "genre": "Cuentos", "id": "b129"}, {"title": "¿Drama Queen o King?", "author": "Lakita", "year": "2020", "genre": "Infantil, libro artesanal", "id": "b130"}, {"title": "Claudio el Tritón", "author": "Lakita", "year": "2020", "genre": "Infantil, libro artesanal", "id": "b131"}, {"title": "Súper Amigues. Cómics contra el COVID", "author": "Lakita Canessa, Chechi Chávez et al.", "year": "2020", "genre": "Cómics", "id": "b132"}, {"title": "Capricho en azul", "author": "Oswaldo Reynoso", "year": "2020", "genre": "Crónicas", "id": "b133"}, {"title": "Lxs niñxs de oro de la alquimia sexual", "author": "Tilsa Otta", "year": "2020", "genre": "Novela", "id": "b134"}];
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const titleToId = Object.fromEntries(catalog.map(b => [b.title, b.id]));
-const demoUsersRaw = [
-  {username:"biblioteca_arcoiris", titles:["No se lo digas a nadie","A las orillas de Lesbos","El goce de la piel","Más allá del arcoíris","Dicen de mí","Tragicomedias lésbicas","Camila tiene dos mamás","La sangre de la aurora","Súper Amigues. Cómics contra el COVID","Lxs niñxs de oro de la alquimia sexual"]},
-  {username:"comic_peru", titles:["Islas","El efecto espejo","Tragicomedias lésbicas","Azúcar Amargo","Súper Amigues. Cómics contra el COVID","Dorita y el Dragón","El príncipe Carolina","Claudio el Tritón","¿Drama Queen o King?"]},
-  {username:"lectora_andina", titles:["El Sexto","Los inocentes","En octubre no hay milagros","Un mundo para Julius","En busca de Aladino","Las dos caras del deseo","Ximena de dos caminos","La sangre de la aurora","Mejor el fuego"]},
-  {username:"memoria_diversa", titles:["De amores y luchas. Diversidad sexual, derechos humanos y ciudadanía","La imagen in/decente. Diversidad sexual, prejuicio y discriminación en la prensa escrita peruana","Más allá del arcoíris","Diversidad sexual y sistemas religiosos","Ficciones disidentes en la tierra de la misoginia","A contracorriente. La historia de Susel Paredes","Viva esa chica. Memorias de una lesbiana valiente","Hey, soy gay"]},
-  {username:"poesia_disidente", titles:["El innombrable cuerpo del deseo","Paisaje terrestre","queridolucía","Route 66","Militia amoris","Homo","Tergiverso","Todos los zánganos son reinas","Aprendiendo a enterrar a los muertos","Las imposibles orquídeas"]},
-  {username:"narrativa_lima", titles:["Conversación en La Catedral","Historia de Mayta","No se lo digas a nadie","La noche es virgen","La mujer de mi hermano","El huracán lleva tu nombre","El sueño del celta","Yo soy una señora","Cinco Esquinas"]},
-  {username:"lecturas_lesbicas", titles:["A las orillas de Lesbos","Voces para Lilith","La sangre de la aurora","Coordenadas temporales","Señorita ¿quiere ser mi esposa?","Tragicomedias lésbicas","Las imposibles orquídeas","Camila tiene dos mamás"]},
-  {username:"archivo_queer", titles:["Carta sobre los maricones","Lorenzita","Memorias de Dorish Dam","Rosas matinales","Duque","Maquillage","El cuerpo de Giulia-no","Obra poética","Saturday Night Thriller"]}
-];
-const demoUsers = demoUsersRaw.map(u => ({
-  username:u.username,
-  books:u.titles.map(t => titleToId[t]).filter(Boolean)
-}));
+const SUPABASE_URL = 'https://rvvepwnkzgbtzjwuypny.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_qdbxbATF3ed_hkIVFW6hPA_Oo2_JRD5';
+const PUBLIC_APP_URL = 'https://jlossioq.github.io/lecturas-vanas/match/';
 
-let selected = new Set(
-  JSON.parse(localStorage.getItem("lv2_selected_books") || "[]")
-    .filter(id => catalog.some(b => b.id === id))
-);
-let suggestions = JSON.parse(localStorage.getItem("lv2_suggestions") || "[]");
-let messages = JSON.parse(localStorage.getItem("lv4_messages") || "[]");
-let activeMailTab = "inbox";
-let preparedCSV = "";
+const client = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
+let session = null;
+let user = null;
+let profile = null;
+let isAdmin = false;
+let catalog = [];
+let selectedBooks = new Set();
+let savingBookIds = new Set();
+let suggestions = [];
+let suggestionUsers = new Map();
+let messages = [];
+let messageUsers = new Map();
+let activeMailTab = 'inbox';
+let messageChannel = null;
+let lastSignupEmail = '';
+let preparedCSV = '';
+let sessionRevision = 0;
 
 const el = id => document.getElementById(id);
-const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g,m=>({
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
-}[m]));
-const normalize = s => String(s ?? "")
-  .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-const cleanUsername = s => String(s ?? "").trim().replace(/^@/,"").replace(/\s+/g,"_");
-const numericYear = y => parseInt(String(y).replace(/\D/g,""),10) || 9999;
+}[char]));
+const normalize = value => String(value ?? '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const cleanUsername = value => String(value ?? '').trim().replace(/^@/,'').replace(/\s+/g,'_');
+const numericYear = value => parseInt(String(value ?? '').replace(/\D/g,''),10) || 9999;
 
-function showNotice(msg){
-  el("notice").textContent=msg;
-  el("notice").style.display="block";
-  setTimeout(()=>el("notice").style.display="none",3200);
+function setNotice(id, message, type='error') {
+  const box = el(id);
+  box.textContent = message;
+  box.className = `form-notice ${type}`;
 }
-function setFormNotice(id,msg,type="error"){
-  const box=el(id);
-  box.textContent=msg;
-  box.className=`form-notice ${type}`;
+function clearNotice(id) {
+  const box = el(id);
+  box.textContent = '';
+  box.className = 'form-notice';
 }
-function clearFormNotice(id){
-  const box=el(id);
-  box.textContent="";
-  box.className="form-notice";
+function readableError(error, fallback='No se pudo completar la operación.') {
+  if (!error) return fallback;
+  const message = String(error.message || error);
+  const translations = [
+    ['Invalid login credentials','El correo o la contraseña no son correctos.'],
+    ['Email not confirmed','Debes confirmar el correo antes de ingresar.'],
+    ['User already registered','Ya existe una cuenta con ese correo.'],
+    ['Password should be at least','La contraseña debe tener al menos 8 caracteres.'],
+    ['Database error saving new user','No se pudo crear el perfil. Comprueba que el nombre de usuario no esté ocupado.'],
+    ['duplicate key value violates unique constraint','Ese nombre de usuario ya está ocupado.'],
+    ['rate limit','Se realizaron demasiados intentos. Espera unos minutos y vuelve a probar.']
+  ];
+  const hit = translations.find(([needle]) => message.toLowerCase().includes(needle.toLowerCase()));
+  return hit ? hit[1] : message;
 }
-function currentUser(){return localStorage.getItem("lv2_username")||""}
-function isAdministrator(){
-  return normalize(currentUser())==="administrador";
+function setBusy(button, busy, busyText='Procesando…') {
+  if (!button.dataset.originalText) button.dataset.originalText = button.textContent;
+  button.disabled = busy;
+  button.textContent = busy ? busyText : button.dataset.originalText;
 }
-function updateAdminControls(){
-  const admin=isAdministrator();
-  el("exportSuggestions").style.display=admin?"inline-block":"none";
-  if(!admin){
-    el("exportPanel").style.display="none";
-    preparedCSV="";
-    if(el("csvPreview")) el("csvPreview").value="";
-    if(el("exportStatus")) el("exportStatus").textContent="";
+function formatDate(iso) {
+  try {
+    return new Intl.DateTimeFormat('es-PE',{dateStyle:'medium',timeStyle:'short'}).format(new Date(iso));
+  } catch {
+    return iso || '';
   }
 }
-
-function renderUser(){
-  const u=currentUser();
-  el("userPill").style.display=u?"flex":"none";
-  el("username").style.display=u?"none":"block";
-  el("saveUser").style.display=u?"none":"inline-block";
-  el("activeUser").textContent=u;
-  updateAdminControls();
-  renderUserOptions();
-  renderMailbox();
+function statusLabel(status) {
+  return ({
+    pending:'Pendiente de revisión',
+    approved:'Aprobada',
+    rejected:'Rechazada',
+    needs_info:'Necesita información'
+  })[status] || status;
+}
+function displayValue(value,label) {
+  return value ? `${label}: ${escapeHtml(value)}` : `${label}: sin dato`;
+}
+function hideAutocomplete() {
+  el('autocompleteList').style.display = 'none';
+  el('autocompleteList').innerHTML = '';
+}
+function currentUsername() {
+  return profile?.username || '';
 }
 
-function filteredBooks(){
-  const q=normalize(el("search").value.trim());
-  let items=catalog.filter(b=>normalize(`${b.title} ${b.author} ${b.year} ${b.genre}`).includes(q));
-  const sort=el("sort").value;
-  items.sort((a,b)=>{
-    if(sort==="title") return a.title.localeCompare(b.title,"es");
-    if(sort==="yearDesc") return numericYear(b.year)-numericYear(a.year) || a.title.localeCompare(b.title,"es");
-    return numericYear(a.year)-numericYear(b.year) || a.title.localeCompare(b.title,"es");
+function syncAuthUI() {
+  const logged = Boolean(session && user && profile);
+  el('authLoggedOut').style.display = logged ? 'none' : 'block';
+  el('accountCard').classList.toggle('visible', logged);
+  el('libraryLoginRequired').classList.toggle('visible', !logged);
+  el('matchesLoginRequired').classList.toggle('visible', !logged);
+  el('suggestLoginRequired').classList.toggle('visible', !logged);
+  el('mailLoginRequired').classList.toggle('visible', !logged);
+
+  document.querySelectorAll('[data-auth-required]').forEach(control => {
+    control.disabled = !logged;
   });
-  return items;
+
+  if (logged) {
+    el('accountName').textContent = `@${profile.username}`;
+    el('accountEmail').textContent = user.email || '';
+    el('adminBadge').style.display = isAdmin ? 'inline-block' : 'none';
+  }
+
+  el('exportSuggestionsBtn').style.display = logged && isAdmin ? 'inline-block' : 'none';
+  el('suggestionsHeading').textContent = isAdmin ? 'Todas las propuestas' : 'Mis propuestas';
+  renderCatalog();
 }
-function renderBooks(){
-  const items=filteredBooks();
-  el("catalogCount").textContent=catalog.length;
-  el("visibleCount").textContent=items.length===catalog.length?"":`${items.length} visibles`;
-  el("books").innerHTML=items.map(b=>`
-    <label class="book ${selected.has(b.id)?"selected":""}">
-      <input type="checkbox" data-id="${b.id}" ${selected.has(b.id)?"checked":""}>
-      <div>
-        <div class="book-title">${escapeHtml(b.title)}</div>
-        <div class="book-author">${escapeHtml(b.author)}</div>
-        <div class="book-meta">
-          <span class="mini">${escapeHtml(b.year)}</span>
-          <span class="mini">${escapeHtml(b.genre)}</span>
-        </div>
-      </div>
-    </label>`).join("")||`<div class="empty">No encontramos obras con esa búsqueda.</div>`;
 
-  document.querySelectorAll(".book input").forEach(cb=>cb.addEventListener("change",e=>{
-    const id=e.target.dataset.id;
-    e.target.checked?selected.add(id):selected.delete(id);
-    localStorage.setItem("lv2_selected_books",JSON.stringify([...selected]));
-    renderBooks();
-    updateCount();
-  }));
-}
-function updateCount(){el("selectedCount").textContent=selected.size}
+async function loadCatalog() {
+  const { data, error } = await client
+    .from('books')
+    .select('id,title,author,first_year,publisher,genre')
+    .eq('approved', true);
 
-function calculateMatches(){
-  if(!currentUser()){showNotice("Primero crea un nombre de usuario.");return}
-  if(!selected.size){showNotice("Selecciona al menos un libro.");return}
-  const mine=[...selected];
-  const matches=demoUsers.map(u=>{
-    const common=u.books.filter(id=>selected.has(id));
-    const pct=Math.round(common.length/mine.length*100);
-    const recommendations=u.books.filter(id=>!selected.has(id))
-      .map(id=>catalog.find(b=>b.id===id)).filter(Boolean).slice(0,3);
-    return {...u,common,pct,recommendations};
-  }).filter(m=>m.pct>=50)
-    .sort((a,b)=>b.pct-a.pct||b.common.length-a.common.length||a.username.localeCompare(b.username));
-
-  if(!matches.length){
-    el("matches").innerHTML=`<div class="empty">Ningún perfil de demostración alcanza el 50 % con esta selección. Prueba “Cargar ejemplo” para comprobar el ranking.</div>`;
+  if (error) {
+    el('books').innerHTML = `<div class="empty">No se pudo cargar el catálogo: ${escapeHtml(readableError(error))}</div>`;
+    el('connectionError').style.display = 'block';
+    setNotice('connectionError','La aplicación no pudo comunicarse con la base de datos. Recarga la página o inténtalo más tarde.','error');
     return;
   }
 
-  el("matches").innerHTML=matches.map(m=>{
-    const commonBooks=m.common.map(id=>catalog.find(b=>b.id===id)).filter(Boolean);
-    const shown=commonBooks.slice(0,5), extra=commonBooks.length-shown.length;
-    return `<article class="match">
-      <div class="score" style="--score:${m.pct}"><strong>${m.pct}%</strong></div>
-      <div>
-        <h3>@${escapeHtml(m.username)}</h3>
-        <div class="meta">${m.common.length} de tus ${mine.length} libros coinciden</div>
-        <div class="tags">
-          ${shown.map(b=>`<span class="tag">${escapeHtml(b.title)}</span>`).join("")}
-          ${extra>0?`<span class="tag">+${extra} más</span>`:""}
-        </div>
-        ${m.recommendations.length?`<div class="recommend"><strong>Podría recomendarte:</strong> ${m.recommendations.map(b=>escapeHtml(b.title)).join(", ")}</div>`:""}
-      </div>
-      <div class="match-actions">
-        <div class="badge">Match lector</div>
-        <button class="btn btn-secondary btn-small contactUser" data-user="${escapeHtml(m.username)}">Escribir mensaje</button>
-      </div>
-    </article>`;
-  }).join("");
+  catalog = data || [];
+  renderCatalog();
+}
 
-  document.querySelectorAll(".contactUser").forEach(btn=>{
-    btn.addEventListener("click",()=>openComposer(btn.dataset.user));
+function filteredCatalog() {
+  const query = normalize(el('search').value);
+  let items = catalog.filter(book =>
+    normalize(`${book.title} ${book.author || ''} ${book.first_year || ''} ${book.genre || ''}`).includes(query)
+  );
+  const sort = el('sort').value;
+  items.sort((a,b) => {
+    if (sort === 'title') return a.title.localeCompare(b.title,'es');
+    if (sort === 'yearDesc') return numericYear(b.first_year)-numericYear(a.first_year) || a.title.localeCompare(b.title,'es');
+    return numericYear(a.first_year)-numericYear(b.first_year) || a.title.localeCompare(b.title,'es');
   });
+  return items;
 }
 
-/* AUTOCOMPLETADO DEL CATÁLOGO */
-function hideAutocomplete(){
-  el("autocompleteList").style.display="none";
-  el("autocompleteList").innerHTML="";
+function renderCatalog() {
+  const items = filteredCatalog();
+  el('catalogCount').textContent = catalog.length;
+  el('visibleCount').textContent = items.length === catalog.length ? '' : `${items.length} visibles`;
+  el('selectedCount').textContent = selectedBooks.size;
+
+  if (!catalog.length) return;
+
+  el('books').innerHTML = items.map(book => {
+    const checked = selectedBooks.has(book.id);
+    const saving = savingBookIds.has(book.id);
+    return `
+      <label class="book ${checked ? 'selected' : ''} ${saving ? 'saving' : ''}">
+        <input type="checkbox" data-book-id="${escapeHtml(book.id)}"
+          ${checked ? 'checked' : ''} ${!session || saving ? 'disabled' : ''}>
+        <div>
+          <div class="book-title">${escapeHtml(book.title)}</div>
+          <div class="book-author">${escapeHtml(book.author || 'Autor no indicado')}</div>
+          <div class="book-meta">
+            ${book.first_year ? `<span class="mini">${escapeHtml(book.first_year)}</span>` : ''}
+            ${book.genre ? `<span class="mini">${escapeHtml(book.genre)}</span>` : ''}
+          </div>
+        </div>
+      </label>`;
+  }).join('') || '<div class="empty">No encontramos obras con esa búsqueda.</div>';
 }
-function renderAutocomplete(){
-  const input=el("suggestTitle");
+
+async function loadSelectedBooks() {
+  if (!user) {
+    selectedBooks = new Set();
+    renderCatalog();
+    return;
+  }
+  const { data, error } = await client
+    .from('user_books')
+    .select('book_id')
+    .eq('user_id', user.id);
+  if (error) {
+    el('saveState').textContent = readableError(error);
+    return;
+  }
+  selectedBooks = new Set((data || []).map(row => row.book_id));
+  el('saveState').textContent = '';
+  renderCatalog();
+}
+
+async function toggleBook(bookId, shouldSelect) {
+  if (!user || savingBookIds.has(bookId)) return;
+  savingBookIds.add(bookId);
+  el('saveState').textContent = 'Guardando…';
+  renderCatalog();
+
+  let result;
+  if (shouldSelect) {
+    result = await client.from('user_books').insert({user_id:user.id,book_id:bookId});
+  } else {
+    result = await client.from('user_books')
+      .delete().eq('user_id',user.id).eq('book_id',bookId);
+  }
+
+  savingBookIds.delete(bookId);
+  if (result.error) {
+    el('saveState').textContent = readableError(result.error);
+    renderCatalog();
+    return;
+  }
+  shouldSelect ? selectedBooks.add(bookId) : selectedBooks.delete(bookId);
+  el('saveState').textContent = 'Guardado en la nube';
+  el('matches').innerHTML = '<div class="empty">Tu biblioteca cambió. Pulsa “Buscar coincidencias” para actualizar los resultados.</div>';
+  renderCatalog();
+  setTimeout(() => {
+    if (el('saveState').textContent === 'Guardado en la nube') el('saveState').textContent = '';
+  },2200);
+}
+
+async function fetchProfile() {
+  if (!user) return null;
+  for (let attempt=0; attempt<4; attempt++) {
+    const { data, error } = await client
+      .from('profiles')
+      .select('id,username,created_at')
+      .eq('id',user.id)
+      .maybeSingle();
+    if (!error && data) return data;
+    await new Promise(resolve => setTimeout(resolve,500));
+  }
+  return null;
+}
+
+async function applySession(nextSession) {
+  const revision = ++sessionRevision;
+  session = nextSession;
+  user = nextSession?.user || null;
+  profile = null;
+  isAdmin = false;
+
+  if (messageChannel) {
+    await client.removeChannel(messageChannel);
+    messageChannel = null;
+  }
+
+  if (!user) {
+    selectedBooks = new Set();
+    suggestions = [];
+    messages = [];
+    suggestionUsers = new Map();
+    messageUsers = new Map();
+    syncAuthUI();
+    renderSuggestions();
+    renderMessages();
+    el('matches').innerHTML = '<div class="empty">Todavía no has buscado coincidencias.</div>';
+    return;
+  }
+
+  profile = await fetchProfile();
+  if (revision !== sessionRevision) return;
+
+  if (!profile) {
+    session = null;
+    user = null;
+    setNotice('authNotice','La cuenta existe, pero todavía no se pudo cargar el perfil. Recarga la página en unos segundos.','warning');
+    syncAuthUI();
+    return;
+  }
+
+  const { data: adminData } = await client.rpc('is_admin');
+  isAdmin = Boolean(adminData);
+  syncAuthUI();
+
+  await Promise.all([
+    loadSelectedBooks(),
+    loadSuggestions(),
+    loadMessages()
+  ]);
+  if (revision !== sessionRevision) return;
+  subscribeMessages();
+}
+
+async function signup() {
+  clearNotice('authNotice');
+  const username = cleanUsername(el('signupUsername').value);
+  const email = el('signupEmail').value.trim();
+  const password = el('signupPassword').value;
+  const button = el('signupBtn');
+
+  if (username.length < 3 || username.length > 30) {
+    setNotice('authNotice','El nombre de usuario debe tener entre 3 y 30 caracteres.');
+    return;
+  }
+  if (/\s/.test(username)) {
+    setNotice('authNotice','El nombre de usuario no puede contener espacios.');
+    return;
+  }
+  if (!email || !email.includes('@')) {
+    setNotice('authNotice','Escribe un correo electrónico válido.');
+    return;
+  }
+  if (password.length < 8) {
+    setNotice('authNotice','La contraseña debe tener al menos 8 caracteres.');
+    return;
+  }
+
+  setBusy(button,true,'Comprobando…');
+  const { data: available, error: availabilityError } = await client
+    .rpc('username_available',{p_username:username});
+  if (availabilityError) {
+    setBusy(button,false);
+    setNotice('authNotice',readableError(availabilityError));
+    return;
+  }
+  if (!available) {
+    setBusy(button,false);
+    setNotice('authNotice','Ese nombre de usuario ya está ocupado.');
+    return;
+  }
+
+  setBusy(button,true,'Creando cuenta…');
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options:{
+      data:{username},
+      emailRedirectTo:PUBLIC_APP_URL
+    }
+  });
+  setBusy(button,false);
+
+  if (error) {
+    setNotice('authNotice',readableError(error));
+    return;
+  }
+
+  lastSignupEmail = email;
+  el('resendBtn').style.display = 'block';
+
+  if (data.session) {
+    setNotice('authNotice','Cuenta creada. Ya has iniciado sesión.','success');
+  } else {
+    setNotice('authNotice','Cuenta creada. Revisa tu correo y abre el enlace de confirmación para activar la cuenta.','success');
+  }
+}
+
+async function resendConfirmation() {
+  const email = lastSignupEmail || el('signupEmail').value.trim();
+  if (!email) {
+    setNotice('authNotice','Escribe primero el correo con el que te registraste.');
+    return;
+  }
+  const button = el('resendBtn');
+  setBusy(button,true,'Enviando…');
+  const { error } = await client.auth.resend({
+    type:'signup',
+    email,
+    options:{emailRedirectTo:PUBLIC_APP_URL}
+  });
+  setBusy(button,false);
+  if (error) {
+    setNotice('authNotice',readableError(error));
+  } else {
+    setNotice('authNotice','Se volvió a enviar el mensaje de confirmación.','success');
+  }
+}
+
+async function login() {
+  clearNotice('authNotice');
+  const email = el('loginEmail').value.trim();
+  const password = el('loginPassword').value;
+  const button = el('loginBtn');
+
+  if (!email || !password) {
+    setNotice('authNotice','Completa el correo y la contraseña.');
+    return;
+  }
+  setBusy(button,true,'Ingresando…');
+  const { error } = await client.auth.signInWithPassword({email,password});
+  setBusy(button,false);
+  if (error) setNotice('authNotice',readableError(error));
+}
+
+async function logout() {
+  const button = el('logoutBtn');
+  setBusy(button,true,'Cerrando…');
+  const { error } = await client.auth.signOut();
+  setBusy(button,false);
+  if (error) setNotice('connectionError',readableError(error));
+}
+
+async function calculateMatches() {
+  if (!user) return;
+  if (!selectedBooks.size) {
+    el('matches').innerHTML = '<div class="empty">Registra al menos un libro antes de buscar coincidencias.</div>';
+    return;
+  }
+  const button = el('calculateBtn');
+  setBusy(button,true,'Calculando…');
+  el('matches').innerHTML = '<div class="loading"><span class="spinner"></span>Comparando bibliotecas reales…</div>';
+
+  const { data, error } = await client.rpc('get_matches',{p_min_percent:50});
+  if (error) {
+    setBusy(button,false);
+    el('matches').innerHTML = `<div class="empty">No se pudieron calcular los matches: ${escapeHtml(readableError(error))}</div>`;
+    return;
+  }
+
+  const matches = data || [];
+  if (!matches.length) {
+    setBusy(button,false);
+    el('matches').innerHTML = '<div class="empty">Todavía no hay otro usuario que coincida con al menos el 50 % de tu biblioteca. El resultado cambiará a medida que más personas registren sus lecturas.</div>';
+    return;
+  }
+
+  const enriched = await Promise.all(matches.map(async match => {
+    const [sharedResult,recommendResult] = await Promise.all([
+      client.rpc('get_shared_books',{p_other_user:match.other_user_id}),
+      client.rpc('get_recommendations',{p_other_user:match.other_user_id,p_limit:3})
+    ]);
+    return {
+      ...match,
+      shared: sharedResult.data || [],
+      recommendations: recommendResult.data || []
+    };
+  }));
+
+  el('matches').innerHTML = enriched.map(match => {
+    const percentage = Number(match.percentage);
+    const shared = match.shared.slice(0,5);
+    const extra = match.shared.length - shared.length;
+    return `
+      <article class="match">
+        <div class="score" style="--score:${Math.min(100,percentage)}"><strong>${percentage.toFixed(0)}%</strong></div>
+        <div>
+          <h3>@${escapeHtml(match.username)}</h3>
+          <div class="meta">${match.common_books} de tus ${match.my_books} libros coinciden</div>
+          <div class="tags">
+            ${shared.map(book=>`<span class="tag">${escapeHtml(book.title)}</span>`).join('')}
+            ${extra>0?`<span class="tag">+${extra} más</span>`:''}
+          </div>
+          ${match.recommendations.length ? `<div class="recommend"><strong>Podría recomendarte:</strong> ${match.recommendations.map(book=>escapeHtml(book.title)).join(', ')}</div>` : ''}
+        </div>
+        <div class="match-actions">
+          <div class="badge">Match real</div>
+          <button class="btn btn-secondary btn-small contact-match"
+            data-user="${escapeHtml(match.username)}">Escribir mensaje</button>
+        </div>
+      </article>`;
+  }).join('');
+
+  document.querySelectorAll('.contact-match').forEach(button => {
+    button.addEventListener('click',() => openComposer(button.dataset.user));
+  });
+  setBusy(button,false);
+}
+
+function renderAutocomplete() {
+  const input = el('suggestTitle');
   delete input.dataset.catalogId;
-  const q=normalize(input.value);
-  clearFormNotice("suggestNotice");
-  if(q.length<2){hideAutocomplete();return}
+  clearNotice('suggestNotice');
+  const query = normalize(input.value);
+  if (query.length < 2) {
+    hideAutocomplete();
+    return;
+  }
 
-  const results=catalog
-    .filter(b=>normalize(b.title).includes(q))
-    .sort((a,b)=>{
-      const aStarts=normalize(a.title).startsWith(q)?0:1;
-      const bStarts=normalize(b.title).startsWith(q)?0:1;
-      return aStarts-bStarts || a.title.localeCompare(b.title,"es");
+  const matches = catalog
+    .filter(book => normalize(book.title).includes(query))
+    .sort((a,b) => {
+      const aStarts = normalize(a.title).startsWith(query) ? 0 : 1;
+      const bStarts = normalize(b.title).startsWith(query) ? 0 : 1;
+      return aStarts-bStarts || a.title.localeCompare(b.title,'es');
     }).slice(0,8);
 
-  if(!results.length){hideAutocomplete();return}
-  el("autocompleteList").innerHTML=results.map(b=>`
-    <button type="button" class="autocomplete-item" data-id="${b.id}">
-      <strong>${escapeHtml(b.title)}</strong>
-      <span>${escapeHtml(b.author)} · ${escapeHtml(b.year)}</span>
-    </button>`).join("");
-  el("autocompleteList").style.display="block";
+  if (!matches.length) {
+    hideAutocomplete();
+    return;
+  }
 
-  document.querySelectorAll(".autocomplete-item").forEach(item=>{
-    item.addEventListener("click",()=>{
-      const book=catalog.find(b=>b.id===item.dataset.id);
-      if(!book)return;
-      input.value=book.title;
-      input.dataset.catalogId=book.id;
-      el("suggestAuthor").value=book.author||"";
-      el("suggestYear").value=book.year||"";
+  el('autocompleteList').innerHTML = matches.map(book => `
+    <button type="button" class="autocomplete-item" data-id="${escapeHtml(book.id)}">
+      <strong>${escapeHtml(book.title)}</strong>
+      <span>${escapeHtml(book.author || 'Autor no indicado')} · ${escapeHtml(book.first_year || 'Año no indicado')}</span>
+    </button>`).join('');
+  el('autocompleteList').style.display = 'block';
+
+  document.querySelectorAll('.autocomplete-item').forEach(item => {
+    item.addEventListener('click',() => {
+      const book = catalog.find(entry => entry.id === item.dataset.id);
+      if (!book) return;
+      input.value = book.title;
+      input.dataset.catalogId = book.id;
+      el('suggestAuthor').value = book.author || '';
+      el('suggestYear').value = book.first_year || '';
       hideAutocomplete();
-      setFormNotice(
-        "suggestNotice",
+      setNotice(
+        'suggestNotice',
         `“${book.title}” ya existe en el catálogo. Se completaron el autor y el año; no hace falta enviarlo como propuesta.`,
-        "info"
+        'info'
       );
     });
   });
 }
 
-/* PROPUESTAS */
-function saveSuggestions(){
-  localStorage.setItem("lv2_suggestions",JSON.stringify(suggestions));
-}
-function displayValue(value,label){
-  return value?`${label}: ${escapeHtml(value)}`:`${label}: sin dato`;
-}
-function renderSuggestions(){
-  el("pendingCount").textContent=suggestions.length;
-  if(!suggestions.length){
-    el("pendingList").innerHTML=`<div class="empty">Todavía no hay propuestas.</div>`;
-    renderUserOptions();
+async function addSuggestion() {
+  clearNotice('suggestNotice');
+  if (!user) return;
+
+  const title = el('suggestTitle').value.trim();
+  const author = el('suggestAuthor').value.trim();
+  const first_year = el('suggestYear').value.trim();
+  const publisher = el('suggestPublisher').value.trim();
+
+  if (!title) {
+    setNotice('suggestNotice','Escribe el título del libro para enviar la propuesta.');
     return;
   }
 
-  el("pendingList").innerHTML=suggestions.map((s,i)=>{
-    const title=s.title?escapeHtml(s.title):"<em>Propuesta sin título</em>";
-    const isMine=s.username===currentUser();
-    return `<article class="pending">
-      <div>
-        <strong>${title}</strong>
-        <div class="details">
-          ${displayValue(s.author,"Autor/a")} ·
-          ${displayValue(s.year,"Año")} ·
-          ${displayValue(s.publisher,"Editorial")} ·
-          Propuesto por @${escapeHtml(s.username)}
-        </div>
-        <span class="status">Pendiente de revisión</span>
-      </div>
-      <div class="pending-actions">
-        ${isMine
-          ? `<span class="mini">Tu propuesta</span>`
-          : `<button class="btn btn-secondary btn-small contactProposer" data-user="${escapeHtml(s.username)}">Escribir a quien propuso</button>`}
-        <button class="btn btn-danger btn-small removeSuggestion" data-index="${i}">Eliminar</button>
-      </div>
-    </article>`;
-  }).join("");
-
-  document.querySelectorAll(".removeSuggestion").forEach(btn=>btn.addEventListener("click",()=>{
-    suggestions.splice(Number(btn.dataset.index),1);
-    saveSuggestions();
-    renderSuggestions();
-  }));
-  document.querySelectorAll(".contactProposer").forEach(btn=>btn.addEventListener("click",()=>{
-    openComposer(btn.dataset.user);
-  }));
-  renderUserOptions();
-}
-function addSuggestion(){
-  clearFormNotice("suggestNotice");
-  if(!currentUser()){
-    setFormNotice("suggestNotice","Primero crea un nombre de usuario en la sección 1.");
-    return;
-  }
-
-  const title=el("suggestTitle").value.trim();
-  const author=el("suggestAuthor").value.trim();
-  const year=el("suggestYear").value.trim();
-  const publisher=el("suggestPublisher").value.trim();
-
-  if(!title){
-    setFormNotice("suggestNotice","Escribe el título del libro para enviar la propuesta.");
-    return;
-  }
-
-  const existing=title?catalog.find(b=>normalize(b.title)===normalize(title)):null;
-  if(existing){
-    el("suggestTitle").value=existing.title;
-    el("suggestTitle").dataset.catalogId=existing.id;
-    el("suggestAuthor").value=existing.author||author;
-    el("suggestYear").value=existing.year||year;
-    setFormNotice(
-      "suggestNotice",
-      `“${existing.title}” ya está en el catálogo: ${existing.author}, ${existing.year}. No se guardó como propuesta.`,
-      "info"
+  const existing = catalog.find(book => normalize(book.title) === normalize(title));
+  if (existing) {
+    el('suggestTitle').value = existing.title;
+    el('suggestAuthor').value = existing.author || author;
+    el('suggestYear').value = existing.first_year || first_year;
+    setNotice(
+      'suggestNotice',
+      `“${existing.title}” ya está en el catálogo: ${existing.author || 'autor no indicado'}, ${existing.first_year || 'año no indicado'}.`,
+      'info'
     );
     return;
   }
 
-  const alreadyPending=title?suggestions.find(s=>s.title&&normalize(s.title)===normalize(title)):null;
-  if(alreadyPending){
-    setFormNotice("suggestNotice",`“${alreadyPending.title}” ya está entre las propuestas pendientes.`);
+  const button = el('addSuggestionBtn');
+  setBusy(button,true,'Enviando…');
+  const { error } = await client.from('suggestions').insert({
+    proposer_id:user.id,
+    title,
+    author:author || null,
+    first_year:first_year || null,
+    publisher:publisher || null
+  });
+  setBusy(button,false);
+
+  if (error) {
+    setNotice('suggestNotice',readableError(error));
     return;
   }
 
-  suggestions.unshift({
-    title,author,year,publisher,
-    username:currentUser(),
-    createdAt:new Date().toISOString()
-  });
-  saveSuggestions();
-  renderSuggestions();
-  ["suggestTitle","suggestAuthor","suggestYear","suggestPublisher"].forEach(id=>el(id).value="");
-  delete el("suggestTitle").dataset.catalogId;
+  ['suggestTitle','suggestAuthor','suggestYear','suggestPublisher'].forEach(id => el(id).value = '');
+  delete el('suggestTitle').dataset.catalogId;
   hideAutocomplete();
-  setFormNotice("suggestNotice","Gracias por su envío, si es necesario el equipo se contactará con Ud.","success");
+  setNotice('suggestNotice','Gracias por su envío, si es necesario el equipo se contactará con Ud.','success');
+  await loadSuggestions();
 }
 
-/* CSV */
-function buildCSV(){
-  const rows=[["Título","Autor/a o editor/a","Año","Editorial","Usuario","Fecha"]];
-  suggestions.forEach(s=>rows.push([
-    s.title||"",s.author||"",s.year||"",s.publisher||"",s.username||"",s.createdAt||""
+async function fetchUserMap(ids) {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return new Map();
+  const { data } = await client.from('profiles').select('id,username').in('id',unique);
+  return new Map((data || []).map(row => [row.id,row.username]));
+}
+
+async function loadSuggestions() {
+  if (!user) {
+    suggestions = [];
+    suggestionUsers = new Map();
+    renderSuggestions();
+    return;
+  }
+  const { data, error } = await client
+    .from('suggestions')
+    .select('id,proposer_id,title,author,first_year,publisher,status,admin_notes,created_at,updated_at')
+    .order('created_at',{ascending:false});
+
+  if (error) {
+    el('pendingList').innerHTML = `<div class="empty">${escapeHtml(readableError(error))}</div>`;
+    return;
+  }
+  suggestions = data || [];
+  suggestionUsers = await fetchUserMap(suggestions.map(item => item.proposer_id));
+  renderSuggestions();
+}
+
+function renderSuggestions() {
+  el('pendingCount').textContent = suggestions.length;
+  if (!user) {
+    el('pendingList').innerHTML = '<div class="empty">Inicia sesión para consultar tus propuestas.</div>';
+    return;
+  }
+  if (!suggestions.length) {
+    el('pendingList').innerHTML = `<div class="empty">${isAdmin ? 'Todavía no hay propuestas.' : 'Todavía no has enviado propuestas.'}</div>`;
+    return;
+  }
+
+  el('pendingList').innerHTML = suggestions.map(item => {
+    const proposer = suggestionUsers.get(item.proposer_id) || 'usuario';
+    return `
+      <article class="pending">
+        <div>
+          <strong>${escapeHtml(item.title)}</strong>
+          <div class="details">
+            ${displayValue(item.author,'Autor/a')} ·
+            ${displayValue(item.first_year,'Año')} ·
+            ${displayValue(item.publisher,'Editorial')}
+            ${isAdmin ? ` · Propuesto por @${escapeHtml(proposer)}` : ''}
+          </div>
+          <span class="status ${escapeHtml(item.status)}">${escapeHtml(statusLabel(item.status))}</span>
+        </div>
+        <div class="pending-actions">
+          ${isAdmin ? `
+            <select class="suggestion-status" data-id="${item.id}" aria-label="Estado de propuesta">
+              <option value="pending" ${item.status==='pending'?'selected':''}>Pendiente</option>
+              <option value="needs_info" ${item.status==='needs_info'?'selected':''}>Necesita información</option>
+              <option value="approved" ${item.status==='approved'?'selected':''}>Aprobada</option>
+              <option value="rejected" ${item.status==='rejected'?'selected':''}>Rechazada</option>
+            </select>
+            <button class="btn btn-secondary btn-small contact-proposer" data-user="${escapeHtml(proposer)}">Escribir</button>
+          ` : ''}
+        </div>
+      </article>`;
+  }).join('');
+
+  document.querySelectorAll('.contact-proposer').forEach(button => {
+    button.addEventListener('click',() => openComposer(button.dataset.user));
+  });
+  document.querySelectorAll('.suggestion-status').forEach(select => {
+    select.addEventListener('change',async () => {
+      const { error } = await client.from('suggestions')
+        .update({status:select.value})
+        .eq('id',Number(select.dataset.id));
+      if (error) {
+        setNotice('suggestNotice',readableError(error));
+        await loadSuggestions();
+      } else {
+        await loadSuggestions();
+      }
+    });
+  });
+}
+
+function buildCSV() {
+  const rows = [['Título','Autor/a o editor/a','Año','Editorial','Usuario','Estado','Fecha']];
+  suggestions.forEach(item => rows.push([
+    item.title || '',
+    item.author || '',
+    item.first_year || '',
+    item.publisher || '',
+    suggestionUsers.get(item.proposer_id) || '',
+    statusLabel(item.status),
+    item.created_at || ''
   ]));
-  return rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  return rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(',')).join('\r\n');
 }
-function triggerCSVDownload(csv){
-  if(!isAdministrator()){
-    showNotice("La descarga CSV está disponible únicamente para el administrador.");
-    return;
-  }
-  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="propuestas_libros_pendientes.csv";
-  a.style.display="none";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{
-    document.body.removeChild(a);
+
+function triggerCSVDownload(csv) {
+  const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'propuestas_libros_lecturas_vanas.csv';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    link.remove();
     URL.revokeObjectURL(url);
-  },1200);
+  },1000);
 }
-function prepareCSV(tryDownload=true){
-  if(!isAdministrator()){
-    showNotice("La exportación CSV está disponible únicamente para el administrador.");
-    el("exportPanel").style.display="none";
+
+function prepareCSV(autoDownload=true) {
+  if (!isAdmin) return;
+  if (!suggestions.length) {
+    setNotice('suggestNotice','No hay propuestas para exportar.','info');
     return;
   }
-  if(!suggestions.length){
-    el("exportPanel").style.display="block";
-    el("csvPreview").value="";
-    el("exportStatus").textContent="No hay propuestas para exportar.";
-    el("exportPanel").scrollIntoView({behavior:"smooth",block:"nearest"});
-    return;
-  }
-  preparedCSV=buildCSV();
-  el("csvPreview").value=preparedCSV;
-  el("exportPanel").style.display="block";
-  el("exportStatus").textContent="Archivo preparado.";
-  el("exportPanel").scrollIntoView({behavior:"smooth",block:"nearest"});
-  if(tryDownload){
-    try{
-      triggerCSVDownload(preparedCSV);
-      el("exportStatus").textContent="Se inició la descarga. Si no aparece, usa “Descargar archivo” o “Copiar CSV”.";
-    }catch(err){
-      el("exportStatus").textContent="El visor bloqueó la descarga. Usa “Copiar CSV”.";
-    }
-  }
+  preparedCSV = buildCSV();
+  el('csvPreview').value = preparedCSV;
+  el('exportPanel').style.display = 'block';
+  el('exportStatus').textContent = 'Archivo preparado.';
+  if (autoDownload) triggerCSVDownload(preparedCSV);
 }
-async function copyCSV(){
-  if(!isAdministrator()){
-    showNotice("La copia del CSV está disponible únicamente para el administrador.");
-    return;
-  }
-  if(!preparedCSV)prepareCSV(false);
-  if(!preparedCSV)return;
-  try{
+
+async function copyCSV() {
+  if (!preparedCSV) prepareCSV(false);
+  if (!preparedCSV) return;
+  try {
     await navigator.clipboard.writeText(preparedCSV);
-    el("exportStatus").textContent="CSV copiado al portapapeles.";
-  }catch(err){
-    el("csvPreview").focus();
-    el("csvPreview").select();
-    const ok=document.execCommand("copy");
-    el("exportStatus").textContent=ok?"CSV copiado al portapapeles.":"Selecciona el texto y cópialo manualmente.";
+    el('exportStatus').textContent = 'CSV copiado al portapapeles.';
+  } catch {
+    el('csvPreview').focus();
+    el('csvPreview').select();
+    const ok = document.execCommand('copy');
+    el('exportStatus').textContent = ok ? 'CSV copiado al portapapeles.' : 'Selecciona el texto y cópialo manualmente.';
   }
 }
 
-/* BUZÓN PRIVADO LOCAL */
-function saveMessages(){
-  localStorage.setItem("lv4_messages",JSON.stringify(messages));
-}
-function allKnownUsers(){
-  const names=[
-    ...demoUsers.map(u=>u.username),
-    ...suggestions.map(s=>s.username),
-    ...messages.flatMap(m=>[m.from,m.to])
-  ].filter(Boolean);
-  return [...new Set(names)].sort((a,b)=>a.localeCompare(b,"es"));
-}
-function renderUserOptions(){
-  const me=currentUser();
-  el("userOptions").innerHTML=allKnownUsers()
-    .filter(u=>u!==me)
-    .map(u=>`<option value="@${escapeHtml(u)}"></option>`).join("");
-}
-function openComposer(username){
-  if(!currentUser()){
-    showNotice("Primero crea un nombre de usuario.");
-    document.querySelector(".grid").scrollIntoView({behavior:"smooth"});
+async function loadMessages() {
+  if (!user) {
+    messages = [];
+    messageUsers = new Map();
+    renderMessages();
     return;
   }
-  el("messageTo").value=`@${cleanUsername(username)}`;
-  el("mailboxSection").scrollIntoView({behavior:"smooth",block:"start"});
-  setTimeout(()=>el("messageBody").focus(),450);
-}
-function formatDate(iso){
-  try{
-    return new Intl.DateTimeFormat("es-PE",{
-      dateStyle:"medium",timeStyle:"short"
-    }).format(new Date(iso));
-  }catch{return iso||""}
-}
-function renderMailbox(){
-  const me=currentUser();
-  const content=el("mailContent");
 
-  if(!me){
-    content.classList.add("mail-locked");
-    el("messageList").innerHTML=`<div class="empty">Crea un usuario para usar el buzón.</div>`;
-    el("inboxCount").textContent="0";
-    el("sentCount").textContent="0";
+  const { data, error } = await client
+    .from('messages')
+    .select('id,sender_id,recipient_id,body,read_at,created_at')
+    .order('created_at',{ascending:false});
+
+  if (error) {
+    el('messageList').innerHTML = `<div class="empty">${escapeHtml(readableError(error))}</div>`;
     return;
   }
-  content.classList.remove("mail-locked");
 
-  const inbox=messages.filter(m=>m.to===me);
-  const sent=messages.filter(m=>m.from===me);
-  el("inboxCount").textContent=inbox.length;
-  el("sentCount").textContent=sent.length;
+  messages = data || [];
+  messageUsers = await fetchUserMap(messages.flatMap(item => [item.sender_id,item.recipient_id]));
+  renderMessages();
 
-  document.querySelectorAll(".tab").forEach(tab=>{
-    tab.classList.toggle("active",tab.dataset.tab===activeMailTab);
+  const unreadIds = messages
+    .filter(item => item.recipient_id === user.id && !item.read_at)
+    .map(item => item.id);
+  if (unreadIds.length) {
+    await client.from('messages')
+      .update({read_at:new Date().toISOString()})
+      .in('id',unreadIds);
+    messages = messages.map(item =>
+      unreadIds.includes(item.id) ? {...item,read_at:new Date().toISOString()} : item
+    );
+    renderMessages();
+  }
+}
+
+function renderMessages() {
+  const inbox = user ? messages.filter(item => item.recipient_id === user.id) : [];
+  const sent = user ? messages.filter(item => item.sender_id === user.id) : [];
+  el('inboxCount').textContent = inbox.length;
+  el('sentCount').textContent = sent.length;
+  document.querySelectorAll('[data-mail-tab]').forEach(tab => {
+    tab.classList.toggle('active',tab.dataset.mailTab === activeMailTab);
   });
 
-  const list=activeMailTab==="inbox"?inbox:sent;
-  if(!list.length){
-    el("messageList").innerHTML=`<div class="empty">${activeMailTab==="inbox"?"No tienes mensajes recibidos.":"Todavía no has enviado mensajes."}</div>`;
+  if (!user) {
+    el('messageList').innerHTML = '<div class="empty">Inicia sesión para consultar el buzón.</div>';
     return;
   }
 
-  el("messageList").innerHTML=list
-    .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
-    .map(m=>`
-      <article class="message">
+  const list = activeMailTab === 'inbox' ? inbox : sent;
+  if (!list.length) {
+    el('messageList').innerHTML = `<div class="empty">${activeMailTab==='inbox'?'No tienes mensajes recibidos.':'Todavía no has enviado mensajes.'}</div>`;
+    return;
+  }
+
+  el('messageList').innerHTML = list.map(item => {
+    const otherId = activeMailTab === 'inbox' ? item.sender_id : item.recipient_id;
+    const otherUsername = messageUsers.get(otherId) || 'usuario';
+    return `
+      <article class="message ${activeMailTab==='inbox'&&!item.read_at?'unread':''}">
         <div class="message-head">
-          <div>${activeMailTab==="inbox"?"De":"Para"}: <strong>@${escapeHtml(activeMailTab==="inbox"?m.from:m.to)}</strong></div>
-          <span class="message-date">${escapeHtml(formatDate(m.createdAt))}</span>
+          <div>${activeMailTab==='inbox'?'De':'Para'}: <strong>@${escapeHtml(otherUsername)}</strong></div>
+          <span class="message-date">${escapeHtml(formatDate(item.created_at))}</span>
         </div>
-        <div class="message-body">${escapeHtml(m.body)}</div>
+        <div class="message-body">${escapeHtml(item.body)}</div>
         <div class="message-actions">
-          ${activeMailTab==="inbox"?`<button class="btn btn-secondary btn-small replyMessage" data-user="${escapeHtml(m.from)}">Responder</button>`:""}
-          <button class="btn btn-ghost btn-small deleteMessage" data-id="${escapeHtml(m.id)}">Eliminar</button>
+          ${activeMailTab==='inbox' ? `<button class="btn btn-secondary btn-small reply-message" data-user="${escapeHtml(otherUsername)}">Responder</button>` : ''}
         </div>
-      </article>`).join("");
+      </article>`;
+  }).join('');
 
-  document.querySelectorAll(".replyMessage").forEach(btn=>btn.addEventListener("click",()=>{
-    openComposer(btn.dataset.user);
-  }));
-  document.querySelectorAll(".deleteMessage").forEach(btn=>btn.addEventListener("click",()=>{
-    messages=messages.filter(m=>m.id!==btn.dataset.id);
-    saveMessages();
-    renderMailbox();
-  }));
-}
-function sendMessage(){
-  clearFormNotice("mailNotice");
-  const from=currentUser();
-  const to=cleanUsername(el("messageTo").value);
-  const body=el("messageBody").value.trim();
-
-  if(!from){
-    setFormNotice("mailNotice","Primero crea un nombre de usuario.");
-    return;
-  }
-  if(!to){
-    setFormNotice("mailNotice","Indica el nombre de usuario destinatario.");
-    return;
-  }
-  if(to===from){
-    setFormNotice("mailNotice","El destinatario debe ser otro usuario.");
-    return;
-  }
-  if(!body){
-    setFormNotice("mailNotice","Escribe un mensaje.");
-    return;
-  }
-
-  messages.unshift({
-    id:`m_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-    from,to,body,createdAt:new Date().toISOString()
+  document.querySelectorAll('.reply-message').forEach(button => {
+    button.addEventListener('click',() => openComposer(button.dataset.user));
   });
-  saveMessages();
-  el("messageTo").value="";
-  el("messageBody").value="";
-  activeMailTab="sent";
-  renderMailbox();
-  renderUserOptions();
-  setFormNotice("mailNotice",`Mensaje enviado a @${to}.`,"success");
 }
 
-/* EVENTOS */
-el("saveUser").addEventListener("click",()=>{
-  const u=cleanUsername(el("username").value);
-  if(u.length<3){showNotice("El usuario debe tener al menos 3 caracteres.");return}
-  localStorage.setItem("lv2_username",u);
-  renderUser();
-  renderSuggestions();
-  showNotice("Usuario guardado.");
+function openComposer(username) {
+  if (!user) return;
+  el('messageTo').value = `@${cleanUsername(username)}`;
+  el('mailboxSection').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(() => el('messageBody').focus(),400);
+}
+
+async function sendMessage() {
+  clearNotice('mailNotice');
+  if (!user) return;
+
+  const toUsername = cleanUsername(el('messageTo').value);
+  const body = el('messageBody').value.trim();
+  if (!toUsername) {
+    setNotice('mailNotice','Indica el nombre de usuario destinatario.');
+    return;
+  }
+  if (!body) {
+    setNotice('mailNotice','Escribe un mensaje.');
+    return;
+  }
+  if (normalize(toUsername) === normalize(currentUsername())) {
+    setNotice('mailNotice','El destinatario debe ser otro usuario.');
+    return;
+  }
+
+  const button = el('sendMessageBtn');
+  setBusy(button,true,'Buscando usuario…');
+  const { data: recipient, error: recipientError } = await client
+    .from('profiles')
+    .select('id,username')
+    .ilike('username',toUsername)
+    .maybeSingle();
+
+  if (recipientError || !recipient) {
+    setBusy(button,false);
+    setNotice('mailNotice','No encontramos un usuario con ese nombre.');
+    return;
+  }
+
+  setBusy(button,true,'Enviando…');
+  const { error } = await client.from('messages').insert({
+    sender_id:user.id,
+    recipient_id:recipient.id,
+    body
+  });
+  setBusy(button,false);
+
+  if (error) {
+    setNotice('mailNotice',readableError(error));
+    return;
+  }
+
+  el('messageTo').value = '';
+  el('messageBody').value = '';
+  activeMailTab = 'sent';
+  setNotice('mailNotice',`Mensaje enviado a @${recipient.username}.`,'success');
+  await loadMessages();
+}
+
+function subscribeMessages() {
+  if (!user) return;
+  if (messageChannel) client.removeChannel(messageChannel);
+  messageChannel = client
+    .channel(`messages-${user.id}`)
+    .on('postgres_changes',{
+      event:'INSERT',
+      schema:'public',
+      table:'messages',
+      filter:`recipient_id=eq.${user.id}`
+    },() => loadMessages())
+    .subscribe();
+}
+
+function switchAuthTab(tabName) {
+  document.querySelectorAll('[data-auth-tab]').forEach(tab => {
+    tab.classList.toggle('active',tab.dataset.authTab === tabName);
+  });
+  el('signupView').classList.toggle('active',tabName === 'signup');
+  el('loginView').classList.toggle('active',tabName === 'login');
+  clearNotice('authNotice');
+}
+
+document.querySelectorAll('[data-auth-tab]').forEach(tab => {
+  tab.addEventListener('click',() => switchAuthTab(tab.dataset.authTab));
 });
-el("changeUser").addEventListener("click",()=>{
-  localStorage.removeItem("lv2_username");
-  el("username").value="";
-  renderUser();
-  renderSuggestions();
+document.querySelectorAll('[data-mail-tab]').forEach(tab => {
+  tab.addEventListener('click',() => {
+    activeMailTab = tab.dataset.mailTab;
+    renderMessages();
+  });
 });
-el("search").addEventListener("input",renderBooks);
-el("sort").addEventListener("change",renderBooks);
-el("selectDemo").addEventListener("click",()=>{
-  const demoTitles=["No se lo digas a nadie","A las orillas de Lesbos","El goce de la piel","Más allá del arcoíris","Dicen de mí","Tragicomedias lésbicas","Camila tiene dos mamás","La sangre de la aurora","Súper Amigues. Cómics contra el COVID","Lxs niñxs de oro de la alquimia sexual"];
-  selected=new Set(demoTitles.map(t=>titleToId[t]).filter(Boolean));
-  localStorage.setItem("lv2_selected_books",JSON.stringify([...selected]));
-  renderBooks();updateCount();showNotice("Se cargó una biblioteca de ejemplo.");
+el('signupBtn').addEventListener('click',signup);
+el('resendBtn').addEventListener('click',resendConfirmation);
+el('loginBtn').addEventListener('click',login);
+el('logoutBtn').addEventListener('click',logout);
+el('search').addEventListener('input',renderCatalog);
+el('sort').addEventListener('change',renderCatalog);
+el('calculateBtn').addEventListener('click',calculateMatches);
+el('suggestTitle').addEventListener('input',renderAutocomplete);
+['suggestAuthor','suggestYear','suggestPublisher'].forEach(id => {
+  el(id).addEventListener('input',() => clearNotice('suggestNotice'));
 });
-el("calculate").addEventListener("click",calculateMatches);
-el("suggestTitle").addEventListener("input",renderAutocomplete);
-["suggestAuthor","suggestYear","suggestPublisher"].forEach(id=>{
-  el(id).addEventListener("input",()=>clearFormNotice("suggestNotice"));
+el('addSuggestionBtn').addEventListener('click',addSuggestion);
+el('exportSuggestionsBtn').addEventListener('click',() => prepareCSV(true));
+el('downloadCSVBtn').addEventListener('click',() => {
+  if (!preparedCSV) prepareCSV(false);
+  if (preparedCSV) triggerCSVDownload(preparedCSV);
 });
-document.addEventListener("click",event=>{
-  if(!event.target.closest(".autocomplete-wrap"))hideAutocomplete();
+el('copyCSVBtn').addEventListener('click',copyCSV);
+el('sendMessageBtn').addEventListener('click',sendMessage);
+
+el('books').addEventListener('change',event => {
+  const checkbox = event.target.closest('input[data-book-id]');
+  if (!checkbox) return;
+  toggleBook(checkbox.dataset.bookId,checkbox.checked);
 });
-el("addSuggestion").addEventListener("click",addSuggestion);
-el("exportSuggestions").addEventListener("click",()=>prepareCSV(true));
-el("downloadCSV").addEventListener("click",()=>{
-  if(!preparedCSV)prepareCSV(false);
-  if(preparedCSV)triggerCSVDownload(preparedCSV);
-});
-el("copyCSV").addEventListener("click",copyCSV);
-el("sendMessage").addEventListener("click",sendMessage);
-document.querySelectorAll(".tab").forEach(tab=>tab.addEventListener("click",()=>{
-  activeMailTab=tab.dataset.tab;
-  renderMailbox();
-}));
-el("reset").addEventListener("click",()=>{
-  localStorage.removeItem("lv2_username");
-  localStorage.removeItem("lv2_selected_books");
-  selected=new Set();
-  el("username").value="";
-  el("search").value="";
-  el("matches").innerHTML=`<div class="empty">Selecciona libros y pulsa “Buscar coincidencias”.</div>`;
-  renderUser();renderBooks();updateCount();renderSuggestions();
-  showNotice("La prueba se reinició. Las propuestas y los mensajes se conservaron.");
+document.addEventListener('click',event => {
+  if (!event.target.closest('.autocomplete-wrap')) hideAutocomplete();
 });
 
-renderUser();
-renderBooks();
-updateCount();
-renderSuggestions();
-renderMailbox();
+client.auth.onAuthStateChange((_event,nextSession) => {
+  window.setTimeout(() => applySession(nextSession),0);
+});
+
+await loadCatalog();
+const { data: sessionData, error: sessionError } = await client.auth.getSession();
+if (sessionError) {
+  setNotice('connectionError',readableError(sessionError));
+} else {
+  await applySession(sessionData.session);
+}
 </script>
 </body>
 </html>
